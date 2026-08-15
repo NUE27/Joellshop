@@ -1,0 +1,15 @@
+{
+  "rewrites": [
+    { "source": "/admin", "destination": "/admin.html" },
+    { "source": "/pesanan", "destination": "/pesanan.html" },
+    { "source": "/profil", "destination": "/profil.html" }
+  ],
+  "headers": [
+    {
+      "source": "/api/(.*)",
+      "headers": [
+        { "key": "Cache-Control", "value": "no-store" }
+      ]
+    }
+  ]
+}
