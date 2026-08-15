@@ -1,11 +1,3 @@
-// ============================================================
-// JOELL SHOP - MAIN SCRIPT (FULL WORKING + FIREBASE AUTH)
-// VERSION 2.5.0 - FULL FIXED
-// ============================================================
-
-// ============================================================
-// NOTIFICATION SYSTEM
-// ============================================================
 function requestNotificationPermission() {
     if ("Notification" in window) {
         Notification.requestPermission();
