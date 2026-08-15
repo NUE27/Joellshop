@@ -1,9 +1,5 @@
-// ============================================================
-// PAYMENT API - v15.0 (FINAL - AKURAT DENGAN LZPEDIA)
-// ============================================================
-
 const LZPEDIA_CONFIG = {
-    proxyUrl: 'lzpedia-proxy.php',
+    proxyUrl: '/api/lzpedia',
     baseUrl: 'https://app.lzpedia.my.id/api'
 };
 
