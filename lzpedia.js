@@ -1,5 +1,3 @@
-// LZ Pedia serverless proxy alternative.
-// Configure LZPEDIA_API_KEY in the deployment environment; never place it in browser code.
 export default async function handler(req, res) {
     res.setHeader('Content-Type', 'application/json; charset=utf-8');
     res.setHeader('Vary', 'Origin');
