@@ -1,1950 +1,2742 @@
-function requestNotificationPermission() {
-    if ("Notification" in window) {
-        Notification.requestPermission();
+:root {
+    --bg-primary: #050508;
+    --bg-secondary: #0a0d14;
+    --bg-card: rgba(20, 24, 36, 0.75);
+    --bg-card-solid: #141824;
+    --bg-hover: rgba(30, 36, 52, 0.85);
+    --text-primary: #f0f4ff;
+    --text-secondary: #a0aec0;
+    --text-muted: #64748b;
+    --border-subtle: rgba(255, 255, 255, 0.06);
+    --border-hover: rgba(255, 255, 255, 0.12);
+    --accent: #6366f1;
+    --accent-light: #818cf8;
+    --accent-glow: rgba(99, 102, 241, 0.35);
+    --accent-secondary: #06b6d4;
+    --accent-tertiary: #f472b6;
+    --green: #10b981;
+    --green-glow: rgba(16, 185, 129, 0.3);
+    --gold: #fbbf24;
+    --red: #ef4444;
+    --orange: #f97316;
+    --purple: #a855f7;
+    --radius: 20px;
+    --radius-sm: 12px;
+    --radius-xs: 8px;
+    --shadow-card: 0 8px 32px rgba(0, 0, 0, 0.5), 0 0 0 1px var(--border-subtle);
+    --shadow-glow: 0 0 40px var(--accent-glow);
+    --shadow-green: 0 0 30px var(--green-glow);
+    --transition: 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    --transition-bounce: 0.5s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    --bottom-nav-height: 88px;
+    --font-mono: 'Roboto Condensed', monospace;
+}
+
+[data-theme="light"] {
+    --bg-primary: #f8fafc;
+    --bg-secondary: #f1f5f9;
+    --bg-card: rgba(255, 255, 255, 0.85);
+    --bg-card-solid: #ffffff;
+    --bg-hover: rgba(241, 245, 249, 0.9);
+    --text-primary: #0f172a;
+    --text-secondary: #475569;
+    --text-muted: #94a3b8;
+    --border-subtle: rgba(0, 0, 0, 0.06);
+    --border-hover: rgba(0, 0, 0, 0.12);
+    --accent: #4f46e5;
+    --accent-light: #6366f1;
+    --accent-glow: rgba(79, 70, 229, 0.2);
+    --shadow-card: 0 4px 24px rgba(0, 0, 0, 0.08), 0 0 0 1px var(--border-subtle);
+}
+
+* { 
+    margin: 0; 
+    padding: 0; 
+    box-sizing: border-box; 
+    -webkit-tap-highlight-color: transparent; 
+}
+
+body {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-family: 'Roboto Condensed', sans-serif;
+    line-height: 1.6;
+    min-height: 100vh;
+    padding-bottom: calc(var(--bottom-nav-height) + 30px);
+    overflow-x: hidden;
+    transition: background 0.5s ease, color 0.5s ease;
+    -webkit-user-select: none;
+    -moz-user-select: none;
+    -ms-user-select: none;
+    user-select: none;
+    -webkit-touch-callout: none;
+    -khtml-user-select: none;
+}
+
+img {
+    -webkit-user-drag: none;
+    -khtml-user-drag: none;
+    -moz-user-drag: none;
+    -o-user-drag: none;
+    pointer-events: none;
+}
+
+input, textarea {
+    -webkit-user-select: text;
+    -moz-user-select: text;
+    -ms-user-select: text;
+    user-select: text;
+}
+
+::-webkit-scrollbar { width: 6px; }
+::-webkit-scrollbar-track { background: transparent; }
+::-webkit-scrollbar-thumb { background: var(--accent); border-radius: 20px; }
+::-webkit-scrollbar-thumb:hover { background: var(--accent-light); }
+
+.app-container {
+    max-width: 680px;
+    width: 100%;
+    margin: 0 auto;
+    padding: 0 16px 24px;
+    position: relative;
+}
+
+#particlesCanvas {
+    position: fixed;
+    top: 0; left: 0;
+    width: 100%; height: 100%;
+    pointer-events: none;
+    z-index: 0;
+    opacity: 0.4;
+}
+
+/* ===== TOP HEADER ===== */
+.top-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    padding: 16px 0 12px;
+    border-bottom: 1px solid var(--border-subtle);
+    margin-bottom: 16px;
+    position: relative;
+    z-index: 10;
+}
+.top-header .logo-area {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 900;
+    font-size: 1.6rem;
+    letter-spacing: -0.5px;
+    cursor: pointer;
+    user-select: none;
+}
+.top-header .logo-area img {
+    height: 46px; width: auto;
+    border-radius: 14px;
+    background: rgba(255,255,255,0.05);
+    padding: 4px;
+    border: 1px solid var(--border-subtle);
+    transition: var(--transition);
+}
+.top-header .logo-area img:hover {
+    transform: rotate(-5deg) scale(1.05);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+.top-header .logo-area span {
+    background: linear-gradient(135deg, var(--accent), var(--accent-light), var(--accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+    background-size: 200% 200%;
+    animation: gradientShift 3s ease infinite;
+}
+@keyframes gradientShift {
+    0%, 100% { background-position: 0% 50%; }
+    50% { background-position: 100% 50%; }
+}
+
+.header-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.header-btn {
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    transition: var(--transition);
+    position: relative;
+}
+.header-btn:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    transform: translateY(-2px);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+.user-chip {
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: 40px;
+    padding: 4px 12px 4px 4px;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.user-chip:hover {
+    border-color: var(--accent);
+    box-shadow: 0 0 15px var(--accent-glow);
+}
+.user-chip img {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    object-fit: cover;
+}
+.user-chip .user-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    color: var(--text-primary);
+    max-width: 80px;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+
+/* ===== PROFILE PAGE ===== */
+.profile-header-new { position: relative; margin-bottom: 60px; }
+.profile-cover-new { width: 100%; height: 140px; object-fit: cover; border-radius: 0 0 20px 20px; }
+.profile-avatar-wrap { position: absolute; bottom: -50px; left: 50%; transform: translateX(-50%); }
+.profile-avatar-wrap img { width: 100px; height: 100px; border-radius: 50%; border: 4px solid var(--bg-primary); box-shadow: 0 4px 20px rgba(0,0,0,0.5); object-fit: cover; }
+.edit-profile-btn { position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; border-radius: 50%; background: var(--accent); border: 2px solid var(--bg-primary); color: #fff; display: flex; align-items: center; justify-content: center; cursor: pointer; font-size: 0.8rem; }
+.profile-info-new { text-align: center; padding: 0 20px; }
+.profile-info-new h2 { font-size: 1.5rem; font-weight: 800; margin-bottom: 4px; color: #fff; }
+.profile-info-new p { font-size: 0.9rem; color: var(--text-muted); margin-bottom: 20px; }
+.profile-stats-new { display: flex; justify-content: center; gap: 30px; margin-bottom: 30px; }
+.stat-box { text-align: center; }
+.stat-num { display: block; font-size: 1.2rem; font-weight: 800; color: var(--accent-light); }
+.stat-label { font-size: 0.75rem; color: var(--text-muted); text-transform: uppercase; letter-spacing: 1px; }
+.profile-menu-list { padding: 0 20px; display: flex; flex-direction: column; gap: 12px; }
+.profile-menu-list .menu-item { display: flex; align-items: center; gap: 15px; padding: 16px; background: var(--bg-card); border: 1px solid var(--border-subtle); border-radius: 15px; cursor: pointer; transition: 0.3s; }
+.profile-menu-list .menu-item:hover { border-color: var(--accent); background: rgba(99,102,241,0.05); transform: translateX(5px); }
+.profile-menu-list .menu-item i:first-child { width: 20px; color: var(--accent-light); font-size: 1.1rem; }
+.profile-menu-list .menu-item span { flex: 1; font-weight: 600; font-size: 0.95rem; color: var(--text-primary); }
+.profile-menu-list .menu-item i:last-child { font-size: 0.8rem; color: var(--text-muted); }
+.profile-menu-list .menu-item.logout { margin-top: 10px; border-color: rgba(239, 68, 68, 0.2); }
+.profile-menu-list .menu-item.logout i { color: var(--red); }
+.profile-menu-list .menu-item.logout:hover { background: rgba(239, 68, 68, 0.1); border-color: var(--red); }
+
+.profile-settings-box { text-align: center; }
+.profile-avatar-edit { position: relative; display: inline-block; margin-bottom: 24px; }
+.profile-avatar-edit img { width: 100px; height: 100px; border-radius: 50%; object-fit: cover; border: 3px solid var(--accent); box-shadow: 0 0 20px var(--accent-glow); }
+.profile-avatar-edit .edit-badge { position: absolute; bottom: 0; right: 0; width: 32px; height: 32px; background: var(--accent); color: #fff; border-radius: 50%; display: flex; align-items: center; justify-content: center; border: 3px solid var(--bg-card-solid); cursor: pointer; transition: 0.3s; }
+.profile-avatar-edit .edit-badge:hover { transform: scale(1.1); background: var(--accent-light); }
+.profile-input-group { text-align: left; margin-bottom: 20px; }
+.profile-input-group label { display: block; font-size: 0.8rem; color: var(--text-muted); margin-bottom: 8px; font-weight: 700; text-transform: uppercase; letter-spacing: 1px; }
+.profile-input-group input { width: 100%; padding: 12px 16px; background: rgba(255,255,255,0.03); border: 1px solid var(--border-subtle); border-radius: 12px; color: #fff; font-size: 1rem; outline: none; transition: 0.3s; }
+.profile-input-group input:focus { border-color: var(--accent); background: rgba(99,102,241,0.05); }
+.profile-actions { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-top: 24px; }
+.btn-profile-save { background: var(--accent); color: #fff; border: none; padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+.btn-profile-logout { background: rgba(239, 68, 68, 0.1); color: var(--red); border: 1px solid rgba(239, 68, 68, 0.2); padding: 12px; border-radius: 12px; font-weight: 800; cursor: pointer; transition: 0.3s; }
+.btn-profile-save:hover { box-shadow: 0 0 20px var(--accent-glow); transform: translateY(-2px); }
+.btn-profile-logout:hover { background: var(--red); color: #fff; }
+
+/* ===== HERO SECTION ===== */
+.hero-section {
+    position: relative;
+    border-radius: var(--radius);
+    overflow: hidden;
+    margin-bottom: 20px;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    box-shadow: var(--shadow-card);
+}
+.hero-video-wrap {
+    position: relative;
+    width: 100%;
+    aspect-ratio: 16/9;
+    overflow: hidden;
+}
+.hero-video {
+    width: 100%; height: 100%;
+    object-fit: cover;
+    display: block;
+}
+.hero-overlay {
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(to top, rgba(5,5,8,0.95) 0%, rgba(5,5,8,0.3) 50%, transparent 100%);
+    pointer-events: none;
+}
+.sound-toggle {
+    position: absolute;
+    bottom: 16px; right: 16px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(12px);
+    border: 1.5px solid rgba(255,255,255,0.12);
+    color: #fff;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    z-index: 10;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.sound-toggle:hover {
+    transform: scale(1.1);
+    background: var(--accent);
+    border-color: var(--accent);
+    box-shadow: 0 0 30px var(--accent-glow);
+}
+
+.hero-text-card {
+    padding: 28px 20px 20px;
+    margin-bottom: 12px;
+    text-align: center;
+    position: relative;
+}
+.hero-title {
+    font-size: 1.7rem;
+    font-weight: 900;
+    margin-bottom: 6px;
+    line-height: 1.3;
+}
+.hero-title .typing-text {
+    background: linear-gradient(135deg, var(--accent-light), var(--accent-tertiary));
+    -webkit-background-clip: text;
+    -webkit-text-fill-color: transparent;
+    background-clip: text;
+}
+.hero-title .cursor {
+    display: inline-block;
+    width: 3px;
+    height: 1.1em;
+    background: var(--accent-light);
+    margin-left: 4px;
+    animation: blink 1s infinite;
+    vertical-align: text-bottom;
+}
+@keyframes blink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0; }
+}
+.hero-subtitle {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    margin-bottom: 18px;
+    line-height: 1.5;
+}
+.hero-stats-row {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 10px;
+    justify-content: center;
+}
+.hero-stat {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    gap: 4px;
+    background: rgba(255,255,255,0.04);
+    padding: 14px 10px;
+    border-radius: 16px;
+    border: 1px solid rgba(255,255,255,0.07);
+    transition: var(--transition);
+}
+.hero-stat:hover {
+    background: rgba(255,255,255,0.07);
+    border-color: rgba(99,102,241,0.2);
+}
+.hero-stat i {
+    color: var(--accent-light);
+    font-size: 1.1rem;
+    margin-bottom: 2px;
+}
+.hero-stat .stat-value {
+    font-size: 1.05rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    line-height: 1;
+}
+.hero-stat .stat-label {
+    font-size: 0.68rem;
+    font-weight: 500;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+}
+
+/* ===== FLASH SALE BAR ===== */
+.flash-sale-bar {
+    background: linear-gradient(135deg, rgba(239,68,68,0.12), rgba(239,68,68,0.06));
+    border: 1px solid rgba(239,68,68,0.18);
+    border-radius: 16px;
+    padding: 16px 20px;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    flex-wrap: wrap;
+    gap: 12px;
+    position: relative;
+    overflow: hidden;
+}
+.flash-sale-bar::before {
+    content: '';
+    position: absolute;
+    top: 0; left: -100%;
+    width: 100%; height: 100%;
+    background: linear-gradient(90deg, transparent, rgba(255,255,255,0.04), transparent);
+    animation: shimmer 3s infinite;
+}
+@keyframes shimmer {
+    0% { left: -100%; }
+    100% { left: 100%; }
+}
+.flash-sale-info {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    z-index: 1;
+}
+.flash-sale-info i {
+    color: var(--red);
+    font-size: 1.2rem;
+    animation: shake 2s infinite;
+}
+@keyframes shake {
+    0%, 100% { transform: rotate(0); }
+    10% { transform: rotate(-10deg); }
+    20% { transform: rotate(10deg); }
+    30% { transform: rotate(-10deg); }
+    40% { transform: rotate(10deg); }
+    50% { transform: rotate(0); }
+}
+.flash-sale-text {
+    font-weight: 700;
+    font-size: 0.88rem;
+}
+.flash-sale-text .highlight {
+    color: var(--red);
+}
+.countdown-timer {
+    display: flex;
+    gap: 8px;
+    z-index: 1;
+}
+.countdown-item {
+    background: rgba(239,68,68,0.1);
+    backdrop-filter: blur(10px);
+    padding: 8px 12px;
+    border-radius: 10px;
+    text-align: center;
+    min-width: 50px;
+    border: 1px solid rgba(239,68,68,0.15);
+}
+.countdown-item .num {
+    font-size: 1.2rem;
+    font-weight: 800;
+    color: var(--red);
+    display: block;
+    line-height: 1;
+    font-family: var(--font-mono);
+}
+.countdown-item .label {
+    font-size: 0.5rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    margin-top: 3px;
+    display: block;
+}
+
+/* ===== SEARCH ===== */
+.search-wrap {
+    display: flex;
+    justify-content: center;
+    margin: 6px 0 20px;
+    position: relative;
+}
+.search-box {
+    display: flex;
+    align-items: center;
+    background: var(--bg-card);
+    border-radius: 60px;
+    padding: 4px 6px 4px 22px;
+    box-shadow: var(--shadow-card);
+    width: 100%;
+    border: 1px solid var(--border-subtle);
+    backdrop-filter: blur(10px);
+    transition: var(--transition);
+    position: relative;
+}
+.search-box:focus-within {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 4px var(--accent-glow), var(--shadow-card);
+}
+.search-box input {
+    border: none; outline: none;
+    flex: 1;
+    padding: 14px 6px;
+    font-size: 1rem;
+    background: transparent;
+    color: var(--text-primary);
+    font-family: inherit;
+}
+.search-box input::placeholder { color: var(--text-muted); }
+.search-box button {
+    background: linear-gradient(135deg, var(--accent), var(--accent-light));
+    border: none;
+    color: #fff;
+    padding: 10px 24px;
+    border-radius: 60px;
+    font-weight: 700;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.95rem;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.search-box button:hover {
+    transform: scale(1.03);
+    box-shadow: 0 0 24px var(--accent-glow);
+}
+
+/* ===== STORE HEADER ===== */
+.store-header {
+    text-align: center;
+    margin: 0 0 20px;
+    padding: 16px 0 0;
+}
+.store-name {
+    font-size: 1.3rem;
+    font-weight: 900;
+    display: flex;
+    flex-wrap: wrap;
+    align-items: center;
+    justify-content: center;
+    gap: 8px 14px;
+}
+.store-name .rating {
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--gold);
+    display: inline-flex;
+    align-items: center;
+    gap: 4px;
+    background: rgba(251,191,36,0.08);
+    padding: 5px 12px;
+    border-radius: 10px;
+    border: 1px solid rgba(251,191,36,0.15);
+}
+.store-name .badge-free {
+    display: inline-block;
+    background: rgba(16,185,129,0.1);
+    color: var(--green);
+    font-size: 0.68rem;
+    font-weight: 700;
+    padding: 5px 14px;
+    border-radius: 10px;
+    border: 1px solid rgba(16,185,129,0.2);
+    white-space: nowrap;
+    animation: glowGreen 2s ease-in-out infinite;
+}
+@keyframes glowGreen {
+    0%, 100% { box-shadow: 0 0 5px var(--green-glow); }
+    50% { box-shadow: 0 0 16px var(--green-glow); }
+}
+
+/* ===== SECTION TITLE ===== */
+.section-title {
+    color: var(--accent-light);
+    font-size: 1rem;
+    font-weight: 800;
+    text-transform: uppercase;
+    letter-spacing: 1px;
+    margin: 28px 0 16px 4px;
+    border-left: 4px solid var(--accent);
+    padding-left: 14px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+}
+
+/* ===== GRID MENU ===== */
+.grid-menu {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 14px;
+    margin-bottom: 16px;
+}
+.menu-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 26px 14px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    border: 1px solid var(--border-subtle);
+    backdrop-filter: blur(10px);
+    min-height: 130px;
+    position: relative;
+    overflow: hidden;
+    text-decoration: none;
+    color: var(--text-secondary);
+    box-shadow: var(--shadow-card);
+}
+.menu-card::before {
+    content: '';
+    position: absolute;
+    inset: 0;
+    background: linear-gradient(135deg, var(--accent), transparent);
+    opacity: 0;
+    transition: var(--transition);
+}
+.menu-card::after {
+    content: '';
+    position: absolute;
+    top: -50%; left: -50%;
+    width: 200%; height: 200%;
+    background: radial-gradient(circle, var(--accent-glow) 0%, transparent 70%);
+    opacity: 0;
+    transition: var(--transition);
+    pointer-events: none;
+}
+.menu-card:hover::before { opacity: 0.06; }
+.menu-card:hover::after { opacity: 0.5; }
+.menu-card:hover {
+    transform: translateY(-6px) scale(1.02);
+    border-color: var(--accent);
+    box-shadow: 0 12px 40px var(--accent-glow), var(--shadow-card);
+}
+.menu-card i {
+    color: var(--accent-light);
+    font-size: 36px;
+    margin-bottom: 12px;
+    position: relative;
+    z-index: 1;
+    transition: var(--transition-bounce);
+}
+.menu-card:hover i {
+    transform: scale(1.15) rotate(-5deg);
+    filter: drop-shadow(0 0 20px var(--accent-glow));
+}
+.menu-card span {
+    font-size: 14px;
+    font-weight: 600;
+    line-height: 1.4;
+    color: var(--text-secondary);
+    position: relative;
+    z-index: 1;
+}
+.menu-card .card-badge {
+    position: absolute;
+    top: 10px; right: 10px;
+    background: var(--red);
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 800;
+    padding: 3px 8px;
+    border-radius: 20px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+    z-index: 2;
+}
+.menu-card .card-badge.hot { background: linear-gradient(135deg, var(--red), var(--orange)); }
+.menu-card .card-badge.new { background: linear-gradient(135deg, var(--green), var(--accent-secondary)); }
+.menu-card .card-badge.pro { background: linear-gradient(135deg, var(--purple), var(--accent)); }
+
+/* ===== TESTIMONIALS ===== */
+.testimonials-carousel {
+    display: flex;
+    gap: 14px;
+    overflow-x: auto;
+    scroll-snap-type: x mandatory;
+    padding-bottom: 10px;
+    scrollbar-width: none;
+}
+.testimonials-carousel::-webkit-scrollbar { display: none; }
+.testimonial-card {
+    flex: 0 0 280px;
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    border: 1px solid var(--border-subtle);
+    scroll-snap-align: start;
+    backdrop-filter: blur(10px);
+}
+.testimonial-header {
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    margin-bottom: 12px;
+}
+.testimonial-avatar {
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: linear-gradient(135deg, var(--accent), var(--accent-tertiary));
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-weight: 800;
+    color: #fff;
+    font-size: 1rem;
+}
+.testimonial-info h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+}
+.testimonial-info .stars {
+    color: var(--gold);
+    font-size: 0.75rem;
+}
+.testimonial-text {
+    color: var(--text-secondary);
+    font-size: 0.85rem;
+    line-height: 1.6;
+    font-style: italic;
+}
+.testimonial-date {
+    color: var(--text-muted);
+    font-size: 0.7rem;
+    margin-top: 10px;
+}
+
+/* ===== SERVER STATUS ===== */
+.server-status-bar {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 16px;
+    backdrop-filter: blur(10px);
+}
+.server-status-header {
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+    margin-bottom: 12px;
+}
+.server-status-header h3 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.server-status-header h3 i { color: var(--green); }
+.status-refresh {
+    background: none; border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    font-size: 0.85rem;
+    transition: var(--transition);
+}
+.status-refresh:hover { color: var(--accent); }
+.status-refresh.spinning { animation: spin 1s linear infinite; }
+@keyframes spin { to { transform: rotate(360deg); } }
+.server-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+}
+.server-item {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xs);
+    padding: 12px;
+    border: 1px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.server-dot {
+    width: 8px; height: 8px;
+    border-radius: 50%;
+    background: var(--green);
+    box-shadow: 0 0 10px var(--green);
+    flex-shrink: 0;
+}
+.server-dot.warning { background: var(--orange); box-shadow: 0 0 10px rgba(249,115,22,0.5); }
+.server-info { flex: 1; min-width: 0; }
+.server-name {
+    font-size: 0.8rem;
+    font-weight: 600;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.server-meta {
+    font-size: 0.65rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+.server-ping {
+    font-family: var(--font-mono);
+    font-size: 0.75rem;
+    font-weight: 600;
+    color: var(--green);
+}
+
+/* ===== PROMO CODE ===== */
+.promo-section {
+    background: linear-gradient(135deg, rgba(99,102,241,0.1), rgba(168,85,247,0.1));
+    border: 1px solid rgba(99,102,241,0.2);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    margin-bottom: 16px;
+}
+.promo-input-wrap {
+    display: flex;
+    gap: 8px;
+}
+.promo-input-wrap input {
+    flex: 1;
+    padding: 10px 14px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    outline: none;
+    font-family: var(--font-mono);
+}
+.promo-input-wrap input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.promo-input-wrap button {
+    padding: 10px 18px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    border: none;
+    border-radius: var(--radius-xs);
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: var(--transition);
+    white-space: nowrap;
+}
+.promo-input-wrap button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+.promo-message {
+    font-size: 0.8rem;
+    margin-top: 8px;
+    min-height: 20px;
+}
+.promo-message.success { color: var(--green); }
+.promo-message.error { color: var(--red); }
+
+/* ===== DETAIL MODAL ===== */
+.detail-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(20px);
+    z-index: 1000;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeOverlay 0.3s ease;
+}
+.detail-overlay.open { display: flex; }
+.detail-modal {
+    background: var(--bg-card);
+    max-width: 560px;
+    width: 100%;
+    border-radius: var(--radius);
+    padding: 32px 28px;
+    border: 1px solid var(--border-subtle);
+    backdrop-filter: blur(20px);
+    animation: slideUp 0.4s cubic-bezier(0.4,0,0.2,1);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    position: relative;
+}
+.detail-modal .detail-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    width: 40px; height: 40px;
+    border-radius: 50%;
+    font-size: 1.1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.detail-modal .detail-close:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    transform: rotate(90deg);
+}
+.detail-modal h2 {
+    font-size: 1.6rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+    padding-right: 50px;
+}
+.detail-modal .price-tag {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    padding: 6px 16px;
+    border-radius: 30px;
+    font-size: 1.1rem;
+    font-weight: 800;
+    margin: 8px 0 14px;
+    box-shadow: 0 4px 20px var(--accent-glow);
+}
+.detail-modal .desc {
+    color: var(--text-secondary);
+    font-size: 0.95rem;
+    margin-bottom: 20px;
+    line-height: 1.7;
+}
+.detail-modal .variant-title {
+    font-weight: 700;
+    font-size: 0.95rem;
+    color: var(--text-secondary);
+    margin: 16px 0 12px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.detail-modal .variant-list {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 10px;
+    margin: 4px 0 20px;
+}
+.detail-modal .variant-item {
+    display: flex;
+    flex-direction: column;
+    padding: 14px 16px;
+    background: var(--bg-primary);
+    border-radius: var(--radius-xs);
+    border: 2px solid var(--border-subtle);
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    overflow: hidden;
+}
+.detail-modal .variant-item:hover {
+    border-color: var(--accent);
+    background: rgba(99,102,241,0.05);
+}
+.detail-modal .variant-item.active {
+    border-color: var(--accent);
+    background: rgba(99,102,241,0.1);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.detail-modal .variant-item .vname {
+    font-weight: 600;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+}
+.detail-modal .variant-item .vprice {
+    font-weight: 800;
+    color: var(--accent-light);
+    font-size: 0.95rem;
+    margin-top: 4px;
+}
+.detail-modal .variant-item .vstock {
+    font-size: 0.65rem;
+    color: var(--green);
+    margin-top: 4px;
+    font-weight: 600;
+}
+.detail-modal .action-btns {
+    display: flex;
+    gap: 10px;
+    margin-top: 8px;
+}
+.detail-modal .add-cart-btn, .detail-modal .buy-now-btn {
+    flex: 1;
+    padding: 16px;
+    border: none;
+    border-radius: 60px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+}
+.detail-modal .add-cart-btn {
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    border: 2px solid var(--border-subtle);
+}
+.detail-modal .add-cart-btn:hover {
+    border-color: var(--accent);
+    background: rgba(99,102,241,0.1);
+}
+.detail-modal .buy-now-btn {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    box-shadow: 0 4px 20px var(--accent-glow);
+}
+.detail-modal .buy-now-btn:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px var(--accent-glow);
+}
+
+/* ===== CART ===== */
+.cart-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.8);
+    backdrop-filter: blur(16px);
+    z-index: 999;
+    display: none;
+    justify-content: flex-end;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+}
+.cart-overlay.open { display: flex; opacity: 1; }
+.cart-panel {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 440px;
+    height: 100vh;
+    padding: 24px 20px;
+    overflow-y: auto;
+    border-left: 1px solid var(--border-subtle);
+    backdrop-filter: blur(20px);
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.4,0,0.2,1);
+    display: flex;
+    flex-direction: column;
+}
+.cart-overlay.open .cart-panel { transform: translateX(0); }
+.cart-panel .cart-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 20px;
+    padding-bottom: 16px;
+    border-bottom: 1px solid var(--border-subtle);
+    flex-shrink: 0;
+}
+.cart-panel .cart-title {
+    font-size: 1.3rem;
+    font-weight: 800;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+}
+.cart-badge-total {
+    background: var(--accent);
+    color: #fff;
+    font-size: 0.7rem;
+    font-weight: 800;
+    padding: 2px 10px;
+    border-radius: 30px;
+    min-width: 24px;
+    text-align: center;
+}
+.cart-close {
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    color: var(--text-secondary);
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.cart-close:hover {
+    background: var(--accent);
+    color: #fff;
+    transform: rotate(90deg);
+}
+.cart-items-container { flex: 1; overflow-y: auto; padding-right: 4px; }
+.cart-item {
+    display: flex;
+    gap: 14px;
+    padding: 14px 0;
+    border-bottom: 1px solid var(--border-subtle);
+    align-items: center;
+    animation: fadeSlideUp 0.3s ease;
+}
+@keyframes fadeSlideUp {
+    from { opacity: 0; transform: translateY(10px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+.cart-item .item-icon {
+    width: 48px; height: 48px;
+    border-radius: var(--radius-xs);
+    background: var(--bg-primary);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1.4rem;
+    flex-shrink: 0;
+    border: 1px solid var(--border-subtle);
+}
+.cart-item .item-info { flex: 1; min-width: 0; }
+.cart-item .item-name {
+    font-weight: 700;
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+}
+.cart-item .item-variant {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+.cart-item .item-price {
+    font-weight: 800;
+    color: var(--accent-light);
+    font-size: 0.9rem;
+    margin-top: 2px;
+}
+.cart-item .item-actions {
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    flex-shrink: 0;
+}
+.qty-control {
+    display: flex;
+    align-items: center;
+    gap: 4px;
+    background: var(--bg-primary);
+    border-radius: 60px;
+    border: 1px solid var(--border-subtle);
+    padding: 2px;
+}
+.qty-control button {
+    background: none; border: none;
+    color: var(--text-secondary);
+    width: 28px; height: 28px;
+    border-radius: 50%;
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.75rem;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.qty-control button:hover { background: var(--accent); color: #fff; }
+.qty-control .qty-num {
+    font-weight: 700;
+    font-size: 0.85rem;
+    color: var(--text-primary);
+    min-width: 24px;
+    text-align: center;
+}
+.item-remove {
+    background: none; border: none;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    font-size: 0.9rem;
+    padding: 4px;
+}
+.item-remove:hover { color: var(--red); transform: scale(1.15); }
+.cart-empty {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+    flex: 1;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+}
+.cart-empty i {
+    font-size: 4rem;
+    color: var(--border-subtle);
+    margin-bottom: 16px;
+    opacity: 0.5;
+}
+.cart-empty h3 {
+    font-size: 1.1rem;
+    color: var(--text-secondary);
+    margin-bottom: 4px;
+}
+.cart-footer {
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 16px;
+    flex-shrink: 0;
+}
+.cart-summary { display: flex; flex-direction: column; gap: 6px; margin-bottom: 14px; }
+.summary-row {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+}
+.summary-row.total {
+    font-size: 1.15rem;
+    font-weight: 800;
+    color: var(--text-primary);
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 10px;
+    margin-top: 4px;
+}
+.summary-row .total-price { color: var(--accent-light); }
+.cart-actions { display: flex; flex-direction: column; gap: 8px; }
+.cart-actions button {
+    width: 100%;
+    padding: 14px;
+    border: none;
+    border-radius: 60px;
+    font-weight: 800;
+    font-size: 0.95rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 8px;
+}
+.btn-checkout {
+    background: linear-gradient(135deg, var(--green), #059669);
+    color: #fff;
+    box-shadow: 0 4px 20px var(--green-glow);
+}
+.btn-checkout:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px var(--green-glow);
+}
+.btn-clear {
+    background: rgba(239,68,68,0.08);
+    color: var(--red);
+    font-size: 0.8rem;
+    padding: 10px;
+    border: 1px solid rgba(239,68,68,0.15);
+}
+.btn-clear:hover { background: rgba(239,68,68,0.15); }
+
+/* ===== CHECKOUT MODAL ===== */
+.checkout-form {
+    display: flex;
+    flex-direction: column;
+    gap: 14px;
+    margin-top: 8px;
+}
+.checkout-form .form-group label {
+    display: block;
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+.checkout-form .form-group input,
+.checkout-form .form-group textarea {
+    width: 100%;
+    padding: 12px 14px;
+    border-radius: var(--radius-xs);
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 0.9rem;
+    transition: var(--transition);
+    outline: none;
+    font-family: inherit;
+}
+.checkout-form .form-group input:focus,
+.checkout-form .form-group textarea:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.btn-place-order {
+    width: 100%;
+    padding: 16px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    border: none;
+    border-radius: 60px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    box-shadow: 0 4px 20px var(--accent-glow);
+    margin-top: 8px;
+}
+.btn-place-order:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px var(--accent-glow);
+}
+.order-summary-box {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xs);
+    padding: 14px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 8px;
+}
+.order-summary-box h4 {
+    font-size: 0.9rem;
+    margin-bottom: 10px;
+    color: var(--text-primary);
+}
+.order-item-line {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 6px;
+}
+.order-item-line.total {
+    font-weight: 800;
+    color: var(--accent-light);
+    border-top: 1px solid var(--border-subtle);
+    padding-top: 8px;
+    margin-top: 8px;
+}
+
+/* ===== MODALS (Shared) ===== */
+.modal-overlay {
+    position: fixed; inset: 0;
+    background: rgba(0,0,0,0.85);
+    backdrop-filter: blur(20px);
+    z-index: 1001;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeOverlay 0.3s ease;
+}
+.modal-overlay.open { display: flex; }
+.modal-box {
+    background: var(--bg-card);
+    max-width: 560px;
+    width: 100%;
+    border-radius: var(--radius);
+    padding: 28px 24px;
+    border: 1px solid var(--border-subtle);
+    backdrop-filter: blur(20px);
+    animation: slideUp 0.4s cubic-bezier(0.4,0,0.2,1);
+    max-height: 90vh;
+    overflow-y: auto;
+    box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+    position: relative;
+}
+.modal-close {
+    position: absolute;
+    top: 16px; right: 16px;
+    background: var(--bg-primary);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-muted);
+    width: 38px; height: 38px;
+    border-radius: 50%;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.modal-close:hover {
+    background: var(--accent);
+    color: #fff;
+    transform: rotate(90deg);
+}
+@keyframes fadeOverlay { from { opacity: 0; } to { opacity: 1; } }
+@keyframes slideUp { from { transform: translateY(30px); opacity: 0; } to { transform: translateY(0); opacity: 1; } }
+
+/* ===== LOGIN MODAL ===== */
+.login-box {
+    text-align: center;
+    padding: 20px 0;
+}
+.login-box h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+.login-box p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+.login-benefits {
+    text-align: left;
+    background: rgba(99, 102, 241, 0.05);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    margin: 24px 0;
+    border: 1px solid rgba(99, 102, 241, 0.2);
+    position: relative;
+    overflow: hidden;
+}
+.login-benefits::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 2px; height: 100%;
+    background: var(--accent);
+    box-shadow: 0 0 10px var(--accent-glow);
+}
+.login-benefits li {
+    list-style: none;
+    padding: 8px 0;
+    font-size: 0.9rem;
+    color: var(--text-primary);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    font-weight: 500;
+}
+.login-benefits li i {
+    color: var(--accent-light);
+    font-size: 1rem;
+    filter: drop-shadow(0 0 5px var(--accent-glow));
+}
+.g_id_signin {
+    display: flex;
+    justify-content: center;
+    margin-top: 16px;
+}
+
+/* ===== TOPUP MODAL ===== */
+.topup-grid {
+    display: grid;
+    grid-template-columns: repeat(3, 1fr);
+    gap: 16px;
+    margin-top: 6px;
+}
+.topup-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    text-align: center;
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 12px 8px;
+    border-radius: var(--radius-xs);
+    background: transparent;
+    border: 1px solid transparent;
+}
+.topup-item:hover {
+    transform: translateY(-4px);
+    background: var(--bg-primary);
+    border-color: var(--border-subtle);
+}
+.topup-item:hover img {
+    transform: scale(1.08);
+    filter: drop-shadow(0 0 20px var(--accent-glow));
+}
+.topup-item img {
+    width: 70px; height: 70px;
+    object-fit: contain;
+    margin-bottom: 8px;
+    transition: var(--transition);
+    border-radius: 14px;
+}
+.topup-item span {
+    font-size: 0.7rem;
+    font-weight: 700;
+    color: var(--text-secondary);
+    text-align: center;
+    line-height: 1.3;
+}
+
+/* ===== WHATSAPP STYLE CHAT ===== */
+.order-chat-modal {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    background: #0b0d17 !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 9999;
+    border-radius: 0 !important;
+}
+.order-chat-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: rgba(11, 13, 23, 0.9) !important;
+    backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    z-index: 10;
+}
+.order-chat-header img {
+    width: 42px; height: 42px;
+    border-radius: 50%;
+    object-fit: cover;
+    border: 2px solid rgba(99, 102, 241, 0.5);
+}
+.order-chat-header .info h3 {
+    font-size: 1.1rem;
+    font-weight: 700;
+    color: #fff;
+    font-family: 'Inter', sans-serif;
+}
+.order-chat-header .info p {
+    font-size: 0.75rem;
+    color: rgba(255, 255, 255, 0.5);
+    font-family: 'Inter', sans-serif;
+}
+.order-chat-messages {
+    flex: 1;
+    padding: 24px 16px;
+    background: #0b0d17 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+    scrollbar-width: none;
+}
+.order-chat-messages::-webkit-scrollbar { display: none; }
+.chat-row {
+    display: flex;
+    gap: 12px;
+    width: 100%;
+    align-items: flex-start;
+}
+.chat-row.user-row { flex-direction: row-reverse; }
+.chat-avatar {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--accent);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.8rem;
+    color: #fff;
+    flex-shrink: 0;
+    margin-top: 4px;
+}
+.order-chat-messages .msg {
+    max-width: calc(100% - 60px);
+    padding: 14px 18px;
+    border-radius: 20px;
+    font-size: 0.92rem;
+    line-height: 1.5;
+    position: relative;
+    font-family: 'Inter', sans-serif;
+}
+.order-chat-messages .msg.admin {
+    background: #1a1d2d;
+    color: #e2e8f0;
+    border-bottom-left-radius: 4px;
+}
+.order-chat-messages .msg.user {
+    background: #252945;
+    color: #fff;
+    border-bottom-right-radius: 4px;
+}
+.order-chat-messages .msg .time {
+    font-size: 0.65rem;
+    color: rgba(255,255,255,0.3);
+    margin-top: 8px;
+    display: block;
+}
+.order-chat-input-wrap {
+    padding: 16px 20px 30px;
+    background: #0b0d17;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+}
+.input-container {
+    flex: 1;
+    background: #1a1d2d;
+    border-radius: 30px;
+    padding: 4px 6px 4px 16px;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+.input-container input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px 0;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+}
+.order-chat-input-wrap button#orderChatSend,
+.order-chat-input-wrap button#adminChatSend {
+    width: 40px; height: 40px;
+    background: #4f46e5;
+    border-radius: 50%;
+    color: #fff;
+    border: none;
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+}
+.chat-attach-btn {
+    width: 32px; height: 32px;
+    color: rgba(255, 255, 255, 0.5) !important;
+    background: transparent !important;
+    border: none;
+    cursor: pointer;
+    font-size: 1.1rem;
+}
+.order-chat-messages .msg img {
+    max-width: 100%;
+    border-radius: 8px;
+    display: block;
+    cursor: pointer;
+}
+.chat-img-container {
+    position: relative;
+    margin-top: 6px;
+    border-radius: 8px;
+    overflow: hidden;
+}
+.chat-download-overlay {
+    position: absolute;
+    top: 5px;
+    right: 5px;
+    width: 32px;
+    height: 32px;
+    background: rgba(0,0,0,0.6);
+    backdrop-filter: blur(8px);
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    color: #fff;
+    text-decoration: none;
+    opacity: 0;
+    transition: 0.3s;
+    border: 1px solid rgba(255,255,255,0.2);
+    z-index: 5;
+}
+.chat-img-container:hover .chat-download-overlay { opacity: 1; }
+.chat-file-box {
+    background: rgba(255,255,255,0.05);
+    border: 1px solid var(--border-subtle);
+    border-radius: 10px;
+    padding: 10px;
+    margin-top: 6px;
+    display: flex;
+    align-items: center;
+    gap: 10px;
+    transition: var(--transition);
+}
+.chat-file-box:hover {
+    background: rgba(255,255,255,0.08);
+    border-color: var(--accent-light);
+}
+.chat-file-box .file-icon {
+    font-size: 1.5rem;
+    color: var(--accent-light);
+}
+.chat-file-box .file-info {
+    flex: 1;
+    overflow: hidden;
+}
+.chat-file-box .file-name {
+    font-size: 0.8rem;
+    font-weight: 700;
+    color: var(--text-primary);
+    white-space: nowrap;
+    overflow: hidden;
+    text-overflow: ellipsis;
+    margin-bottom: 2px;
+}
+.chat-file-box .file-download-link {
+    font-size: 0.7rem;
+    color: var(--accent-light);
+    text-decoration: none;
+    font-weight: 600;
+    display: flex;
+    align-items: center;
+    gap: 4px;
+}
+.chat-file-box .file-download-link:hover {
+    color: #fff;
+    text-decoration: underline;
+}
+
+/* ===== ORDERS ===== */
+.orders-list {
+    display: flex;
+    flex-direction: column;
+    gap: 12px;
+    margin-top: 16px;
+}
+.order-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 16px;
+    border: 1px solid var(--border-subtle);
+    cursor: pointer;
+    transition: var(--transition);
+}
+.order-card:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
+}
+.order-card-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 10px;
+}
+.order-id {
+    font-family: var(--font-mono);
+    font-size: 0.85rem;
+    font-weight: 700;
+    color: var(--accent-light);
+}
+.order-status {
+    font-size: 0.7rem;
+    font-weight: 700;
+    padding: 4px 12px;
+    border-radius: 30px;
+    text-transform: uppercase;
+    letter-spacing: 0.5px;
+}
+.order-status.pending {
+    background: rgba(251,191,36,0.15);
+    color: var(--gold);
+    border: 1px solid rgba(251,191,36,0.2);
+}
+.order-status.read {
+    background: rgba(99,102,241,0.15);
+    color: var(--accent-light);
+    border: 1px solid rgba(99,102,241,0.2);
+}
+.order-status.processing {
+    background: rgba(6,182,212,0.15);
+    color: var(--accent-secondary);
+    border: 1px solid rgba(6,182,212,0.2);
+}
+.order-status.shipped {
+    background: rgba(168,85,247,0.15);
+    color: var(--purple);
+    border: 1px solid rgba(168,85,247,0.2);
+}
+.order-status.completed {
+    background: rgba(16,185,129,0.15);
+    color: var(--green);
+    border: 1px solid rgba(16,185,129,0.2);
+}
+.order-products {
+    font-size: 0.85rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+.order-meta {
+    display: flex;
+    justify-content: space-between;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+.order-total {
+    font-weight: 800;
+    color: var(--text-primary);
+}
+.order-msg-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 8px 16px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 10px 0 6px;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4), 0 0 0 1px rgba(255,255,255,0.08);
+    animation: msgBadgePulse 2.5s ease-in-out infinite;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+.order-msg-badge::before {
+    content: '';
+    position: absolute;
+    top: -50%;
+    left: -50%;
+    width: 200%;
+    height: 200%;
+    background: linear-gradient(45deg, transparent 30%, rgba(255,255,255,0.1) 50%, transparent 70%);
+    animation: badgeShimmer 3s infinite;
+}
+@keyframes badgeShimmer {
+    0% { transform: translateX(-100%) translateY(-100%); }
+    100% { transform: translateX(100%) translateY(100%); }
+}
+.order-msg-badge i {
+    font-size: 0.85rem;
+    filter: drop-shadow(0 0 4px rgba(255,255,255,0.5));
+    animation: msgIconBounce 1.5s ease-in-out infinite;
+}
+@keyframes msgIconBounce {
+    0%, 100% { transform: scale(1); }
+    50% { transform: scale(1.2); }
+}
+@keyframes msgBadgePulse {
+    0%, 100% { box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4), 0 0 0 1px rgba(255,255,255,0.08); transform: scale(1); }
+    50% { box-shadow: 0 4px 30px rgba(99, 102, 241, 0.6), 0 0 20px rgba(168, 85, 247, 0.3), 0 0 0 1px rgba(255,255,255,0.12); transform: scale(1.02); }
+}
+.order-msg-badge .msg-dot {
+    width: 8px;
+    height: 8px;
+    background: #fff;
+    border-radius: 50%;
+    box-shadow: 0 0 10px rgba(255,255,255,0.8);
+    animation: msgDotBlink 1s ease-in-out infinite;
+}
+@keyframes msgDotBlink {
+    0%, 100% { opacity: 1; }
+    50% { opacity: 0.4; }
+}
+.empty-orders {
+    text-align: center;
+    padding: 60px 20px;
+    color: var(--text-muted);
+}
+.empty-orders i {
+    font-size: 3rem;
+    margin-bottom: 12px;
+    opacity: 0.5;
+}
+
+/* ===== TRACKING ===== */
+.tracking-detail-box {
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 24px;
+    border: 1px solid var(--border-subtle);
+    margin: 16px 0;
+}
+.tracking-detail-box h2 {
+    font-size: 1.3rem;
+    font-weight: 800;
+    margin-bottom: 4px;
+}
+.tracking-detail-box .subtitle {
+    color: var(--text-muted);
+    font-size: 0.85rem;
+    margin-bottom: 20px;
+}
+.tracking-timeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin: 16px 0;
+}
+.tracking-step {
+    display: flex;
+    gap: 16px;
+    position: relative;
+    padding-bottom: 24px;
+}
+.tracking-step:not(:last-child)::before {
+    content: '';
+    position: absolute;
+    left: 15px;
+    top: 32px;
+    bottom: 0;
+    width: 2px;
+    background: var(--border-subtle);
+}
+.tracking-step.completed:not(:last-child)::before {
+    background: linear-gradient(to bottom, var(--green), var(--accent));
+}
+.tracking-dot {
+    width: 32px; height: 32px;
+    border-radius: 50%;
+    background: var(--bg-primary);
+    border: 2px solid var(--border-subtle);
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    flex-shrink: 0;
+    z-index: 1;
+}
+.tracking-step.completed .tracking-dot {
+    background: var(--green);
+    border-color: var(--green);
+    color: #fff;
+    box-shadow: 0 0 15px var(--green-glow);
+}
+.tracking-step.active .tracking-dot {
+    background: var(--accent);
+    border-color: var(--accent);
+    color: #fff;
+    box-shadow: 0 0 15px var(--accent-glow);
+    animation: pulseDot 2s infinite;
+}
+@keyframes pulseDot {
+    0%, 100% { box-shadow: 0 0 5px var(--accent-glow); }
+    50% { box-shadow: 0 0 20px var(--accent-glow); }
+}
+.tracking-info h4 {
+    font-size: 0.9rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+.tracking-info p {
+    font-size: 0.8rem;
+    color: var(--text-muted);
+}
+.tracking-info .time {
+    font-size: 0.7rem;
+    color: var(--text-muted);
+    margin-top: 2px;
+}
+
+/* ===== ADMIN PANEL ===== */
+.admin-page { display: none; }
+.admin-page.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+}
+.admin-login-box {
+    max-width: 400px;
+    margin: 60px auto;
+    background: var(--bg-card);
+    border-radius: var(--radius);
+    padding: 40px 32px;
+    border: 1px solid var(--border-subtle);
+    text-align: center;
+    box-shadow: var(--shadow-card);
+}
+.admin-login-box h2 {
+    font-size: 1.5rem;
+    font-weight: 800;
+    margin-bottom: 8px;
+}
+.admin-login-box p {
+    color: var(--text-muted);
+    font-size: 0.9rem;
+    margin-bottom: 24px;
+}
+.admin-login-box input {
+    width: 100%;
+    padding: 14px 18px;
+    border-radius: 60px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-primary);
+    color: var(--text-primary);
+    font-size: 1rem;
+    margin-bottom: 16px;
+    outline: none;
+    text-align: center;
+    letter-spacing: 2px;
+}
+.admin-login-box input:focus {
+    border-color: var(--accent);
+    box-shadow: 0 0 0 3px var(--accent-glow);
+}
+.admin-login-box button {
+    width: 100%;
+    padding: 14px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    border: none;
+    border-radius: 60px;
+    font-weight: 800;
+    font-size: 1rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.admin-login-box button:hover {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px var(--accent-glow);
+}
+.admin-stats-grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 12px;
+    margin-bottom: 20px;
+}
+.admin-stat-card {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    border: 1px solid var(--border-subtle);
+    text-align: center;
+}
+.admin-stat-card .num {
+    font-size: 1.8rem;
+    font-weight: 900;
+    color: var(--accent-light);
+}
+.admin-stat-card .label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    margin-top: 4px;
+}
+.admin-section {
+    background: var(--bg-card);
+    border-radius: var(--radius-sm);
+    padding: 20px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 16px;
+}
+.admin-section h3 {
+    font-size: 1rem;
+    font-weight: 800;
+    margin-bottom: 16px;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+}
+.admin-order-item {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xs);
+    padding: 14px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 10px;
+    transition: var(--transition);
+}
+.admin-order-item:hover {
+    border-color: var(--accent);
+}
+.admin-order-header {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    margin-bottom: 8px;
+    flex-wrap: wrap;
+    gap: 8px;
+}
+.admin-order-id {
+    font-family: var(--font-mono);
+    font-weight: 700;
+    color: var(--accent-light);
+    font-size: 0.9rem;
+}
+.admin-status-select {
+    padding: 4px 12px;
+    border-radius: 30px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+}
+.admin-order-meta {
+    font-size: 0.8rem;
+    color: var(--text-secondary);
+    margin-bottom: 8px;
+}
+.admin-order-products {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    margin-bottom: 10px;
+}
+.admin-chat-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    border: none;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+}
+.admin-chat-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* ===== TOAST ===== */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 9999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
+}
+.toast {
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    border-radius: var(--radius-xs);
+    padding: 14px 18px;
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    box-shadow: 0 8px 32px rgba(0,0,0,0.4);
+    backdrop-filter: blur(20px);
+    animation: toastSlide 0.4s cubic-bezier(0.68, -0.55, 0.265, 1.55);
+    pointer-events: all;
+    max-width: 320px;
+}
+@keyframes toastSlide {
+    from { transform: translateX(120%); opacity: 0; }
+    to { transform: translateX(0); opacity: 1; }
+}
+.toast.toast-out {
+    animation: toastOut 0.3s ease forwards;
+}
+@keyframes toastOut {
+    to { transform: translateX(120%); opacity: 0; }
+}
+.toast-icon {
+    width: 36px; height: 36px;
+    border-radius: 50%;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    flex-shrink: 0;
+}
+.toast-icon.success { background: rgba(16,185,129,0.15); color: var(--green); }
+.toast-icon.error { background: rgba(239,68,68,0.15); color: var(--red); }
+.toast-icon.info { background: rgba(99,102,241,0.15); color: var(--accent); }
+.toast-icon.warning { background: rgba(249,115,22,0.15); color: var(--orange); }
+.toast-content h4 {
+    font-size: 0.85rem;
+    font-weight: 700;
+    margin-bottom: 2px;
+}
+.toast-content p {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+}
+
+/* ===== BACK TO TOP ===== */
+.back-to-top {
+    position: fixed;
+    bottom: calc(var(--bottom-nav-height) + 20px);
+    left: 16px;
+    width: 44px; height: 44px;
+    border-radius: 50%;
+    background: var(--bg-card);
+    border: 1px solid var(--border-subtle);
+    color: var(--text-secondary);
+    cursor: pointer;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    font-size: 1rem;
+    z-index: 300;
+    opacity: 0;
+    transform: translateY(20px);
+    transition: var(--transition);
+    box-shadow: var(--shadow-card);
+    backdrop-filter: blur(10px);
+}
+.back-to-top.visible {
+    opacity: 1;
+    transform: translateY(0);
+}
+.back-to-top:hover {
+    background: var(--accent);
+    color: #fff;
+    border-color: var(--accent);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* ===== BOTTOM NAV ===== */
+.bottom-nav {
+    position: fixed;
+    bottom: 0; left: 0; right: 0;
+    z-index: 200;
+    background: rgba(5,5,8,0.95);
+    backdrop-filter: blur(24px);
+    border-top: 1px solid var(--border-subtle);
+    display: flex;
+    justify-content: space-around;
+    align-items: center;
+    height: var(--bottom-nav-height);
+    padding: 8px 4px 18px;
+    box-shadow: 0 -8px 40px rgba(0,0,0,0.5);
+}
+[data-theme="light"] .bottom-nav {
+    background: rgba(255,255,255,0.95);
+}
+.bottom-nav .nav-item {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    gap: 4px;
+    font-size: 0.65rem;
+    font-weight: 700;
+    color: var(--text-muted);
+    cursor: pointer;
+    transition: var(--transition);
+    padding: 6px 12px;
+    border-radius: 40px;
+    position: relative;
+    min-width: 56px;
+    background: transparent;
+    border: none;
+    font-family: inherit;
+}
+.bottom-nav .nav-item i {
+    font-size: 1.5rem;
+    transition: var(--transition);
+}
+.bottom-nav .nav-item.active {
+    color: var(--accent-light);
+}
+.bottom-nav .nav-item.active i {
+    transform: translateY(-3px);
+    filter: drop-shadow(0 0 16px var(--accent-glow));
+}
+.bottom-nav .nav-item .badge {
+    position: absolute;
+    top: -2px; right: 2px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    font-size: 0.55rem;
+    font-weight: 800;
+    padding: 0 8px;
+    border-radius: 30px;
+    min-width: 18px;
+    text-align: center;
+    line-height: 18px;
+    box-shadow: 0 0 12px var(--accent-glow);
+}
+
+/* ===== PAGES ===== */
+.page { display: none; }
+.page.active {
+    display: block;
+    animation: fadeIn 0.4s ease;
+}
+@keyframes fadeIn {
+    from { opacity: 0; transform: translateY(12px); }
+    to { opacity: 1; transform: translateY(0); }
+}
+
+/* ===== RESPONSIVE ===== */
+@media (max-width: 500px) {
+    .grid-menu { gap: 10px; }
+    .menu-card { padding: 20px 10px; min-height: 110px; }
+    .menu-card i { font-size: 30px; margin-bottom: 8px; }
+    .menu-card span { font-size: 13px; }
+    .detail-modal { padding: 24px 18px; max-width: 100%; }
+    .detail-modal h2 { font-size: 1.3rem; }
+    .detail-modal .variant-list { gap: 8px; }
+    .bottom-nav .nav-item { min-width: 48px; font-size: 0.6rem; }
+    .bottom-nav .nav-item i { font-size: 1.3rem; }
+    .hero-title { font-size: 1.3rem; }
+    .flash-sale-bar { flex-direction: column; text-align: center; }
+    .topup-grid { grid-template-columns: repeat(2, 1fr); }
+    .server-grid { grid-template-columns: 1fr; }
+    .admin-stats-grid { grid-template-columns: 1fr 1fr; }
+}
+@media (max-width: 380px) {
+    .grid-menu { gap: 8px; }
+    .menu-card { padding: 16px 8px; min-height: 95px; }
+    .menu-card i { font-size: 24px; }
+    .menu-card span { font-size: 11px; }
+    .bottom-nav .nav-item { min-width: 40px; font-size: 0.55rem; }
+    .bottom-nav .nav-item i { font-size: 1.1rem; }
+}
+/* Tambahkan di akhir file style.css */
+
+/* ============================================================
+   FIXED - FULL SCREEN MODAL & CLICKABLE FIX
+   ============================================================ */
+
+/* Pastikan semua modal menutupi layar penuh */
+.modal-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 9999 !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    animation: fadeOverlay 0.3s ease;
+    width: 100%;
+    height: 100%;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.modal-overlay.open {
+    display: flex !important;
+}
+
+/* Detail overlay juga full screen */
+.detail-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.85);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    z-index: 9999 !important;
+    display: none;
+    align-items: center;
+    justify-content: center;
+    padding: 20px;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.detail-overlay.open {
+    display: flex !important;
+}
+
+/* Cart overlay full screen */
+.cart-overlay {
+    position: fixed;
+    inset: 0;
+    background: rgba(0, 0, 0, 0.8);
+    backdrop-filter: blur(16px);
+    -webkit-backdrop-filter: blur(16px);
+    z-index: 9999 !important;
+    display: none;
+    justify-content: flex-end;
+    opacity: 0;
+    transition: opacity 0.3s ease;
+    width: 100%;
+    height: 100vh;
+    height: 100dvh;
+}
+
+.cart-overlay.open {
+    display: flex !important;
+    opacity: 1;
+}
+
+/* Cart panel full height */
+.cart-panel {
+    background: var(--bg-card);
+    width: 100%;
+    max-width: 440px;
+    height: 100vh;
+    height: 100dvh;
+    padding: 24px 20px;
+    overflow-y: auto;
+    border-left: 1px solid var(--border-subtle);
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    transform: translateX(100%);
+    transition: transform 0.4s cubic-bezier(0.4, 0, 0.2, 1);
+    display: flex;
+    flex-direction: column;
+}
+
+.cart-overlay.open .cart-panel {
+    transform: translateX(0);
+}
+
+/* Fix untuk tombol dan elemen yang tidak bisa diklik */
+* {
+    -webkit-tap-highlight-color: transparent;
+}
+
+button, 
+.menu-card,
+.nav-item,
+.cart-item,
+.order-card,
+.admin-order-item,
+.topup-item,
+.variant-item,
+.testimonial-card,
+[onclick] {
+    cursor: pointer;
+    position: relative;
+    z-index: 1;
+}
+
+/* Modal box harus di atas overlay */
+.modal-box {
+    position: relative;
+    z-index: 10000;
+    max-height: 90vh;
+    overflow-y: auto;
+}
+
+/* Payment modal - full width di mobile */
+.payment-modal .modal-box {
+    max-width: 480px;
+    width: 100%;
+    padding: 0;
+    overflow: hidden;
+}
+
+/* Chat modal - full screen */
+.order-chat-modal {
+    max-width: 100% !important;
+    width: 100% !important;
+    height: 100vh !important;
+    height: 100dvh !important;
+    background: #0b0d17 !important;
+    border: none !important;
+    box-shadow: none !important;
+    display: flex;
+    flex-direction: column;
+    overflow: hidden;
+    padding: 0;
+    position: fixed !important;
+    top: 0 !important;
+    left: 0 !important;
+    z-index: 99999 !important;
+    border-radius: 0 !important;
+}
+
+/* Pastikan scroll di chat berfungsi */
+.order-chat-messages {
+    flex: 1;
+    padding: 24px 16px;
+    background: #0b0d17 !important;
+    display: flex;
+    flex-direction: column;
+    gap: 24px;
+    overflow-y: auto;
+    scrollbar-width: none;
+    -webkit-overflow-scrolling: touch;
+}
+
+/* Tombol close di modal harus di atas */
+.modal-close {
+    z-index: 10001;
+    position: absolute;
+    top: 16px;
+    right: 16px;
+}
+
+/* Order chat header fixed */
+.order-chat-header {
+    display: flex;
+    align-items: center;
+    gap: 16px;
+    padding: 16px 20px;
+    background: rgba(11, 13, 23, 0.9) !important;
+    backdrop-filter: blur(20px);
+    -webkit-backdrop-filter: blur(20px);
+    border-bottom: 1px solid rgba(255, 255, 255, 0.05) !important;
+    z-index: 10;
+    flex-shrink: 0;
+}
+
+/* Order chat input fixed di bottom */
+.order-chat-input-wrap {
+    padding: 16px 20px 30px;
+    background: #0b0d17;
+    border-top: 1px solid rgba(255, 255, 255, 0.05);
+    display: flex;
+    align-items: center;
+    gap: 12px;
+    flex-shrink: 0;
+    z-index: 10;
+}
+
+/* Input container di chat */
+.input-container {
+    flex: 1;
+    background: #1a1d2d;
+    border-radius: 30px;
+    padding: 4px 6px 4px 16px;
+    display: flex;
+    align-items: center;
+    border: 1px solid rgba(255, 255, 255, 0.05);
+}
+
+.input-container input {
+    flex: 1;
+    background: transparent;
+    border: none;
+    padding: 10px 0;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    min-width: 0;
+}
+
+/* Fix untuk badge di order */
+.order-msg-badge {
+    display: inline-flex;
+    align-items: center;
+    gap: 8px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    font-size: 0.78rem;
+    font-weight: 800;
+    padding: 8px 16px;
+    border-radius: 40px;
+    border: 1px solid rgba(255, 255, 255, 0.15);
+    margin: 10px 0 6px;
+    box-shadow: 0 4px 20px rgba(99, 102, 241, 0.4);
+    animation: msgBadgePulse 2.5s ease-in-out infinite;
+    width: fit-content;
+    text-transform: uppercase;
+    letter-spacing: 0.3px;
+    cursor: pointer;
+    transition: all 0.3s cubic-bezier(0.4, 0, 0.2, 1);
+    position: relative;
+    overflow: hidden;
+}
+
+.order-msg-badge:hover {
+    transform: scale(1.05);
+    box-shadow: 0 4px 30px rgba(99, 102, 241, 0.6);
+}
+
+/* Payment method buttons - clickable */
+.payment-method-btn {
+    padding: 14px;
+    border-radius: 12px;
+    border: 2px solid var(--border-subtle);
+    background: var(--bg-primary);
+    color: var(--text-secondary);
+    font-weight: 700;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    display: flex;
+    align-items: center;
+    justify-content: center;
+    gap: 10px;
+    font-size: 0.9rem;
+    position: relative;
+    z-index: 2;
+}
+
+.payment-method-btn:hover {
+    border-color: var(--accent);
+    color: var(--text-primary);
+}
+
+.payment-method-btn.active {
+    border-color: var(--accent);
+    background: rgba(99, 102, 241, 0.1);
+    color: var(--accent-light);
+    box-shadow: 0 0 20px var(--accent-glow);
+}
+
+/* QRIS actions buttons */
+.qris-actions .btn-check,
+.qris-actions .btn-download {
+    padding: 12px 20px;
+    border-radius: 60px;
+    font-weight: 700;
+    font-size: 0.85rem;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    border: none;
+    display: flex;
+    align-items: center;
+    gap: 8px;
+    position: relative;
+    z-index: 2;
+}
+
+.qris-actions .btn-check {
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+}
+
+.qris-actions .btn-check:hover:not(:disabled) {
+    transform: scale(1.02);
+    box-shadow: 0 8px 30px var(--accent-glow);
+}
+
+.qris-actions .btn-download {
+    background: var(--bg-card);
+    color: var(--text-secondary);
+    border: 1px solid var(--border-subtle);
+}
+
+.qris-actions .btn-download:hover {
+    border-color: var(--accent);
+    color: var(--accent-light);
+}
+
+/* Fix untuk bottom nav di mobile */
+@media (max-width: 500px) {
+    .bottom-nav .nav-item {
+        min-width: 48px;
+        font-size: 0.6rem;
+        padding: 6px 8px;
+    }
+    .bottom-nav .nav-item i {
+        font-size: 1.3rem;
     }
 }
 
-function sendBrowserNotification(title, message, orderId = null) {
-    if ("Notification" in window && Notification.permission === "granted") {
-        const notification = new Notification(title, {
-            body: message,
-            icon: 'https://files.catbox.moe/o3t86k.jpg'
-        });
-        notification.onclick = function() {
-            window.focus();
-            if (orderId) {
-                if (typeof isAdminLoggedIn !== 'undefined' && isAdminLoggedIn) {
-                    openAdminChat(orderId);
-                } else {
-                    navigateTo('orders');
-                    setTimeout(() => openOrderChat(orderId), 500);
-                }
-            }
-        };
-    }
-}
-requestNotificationPermission();
-
-// ============================================================
-// CONFIG & DATA
-// ============================================================
-const CONFIG = {
-    flashSaleEnd: new Date(Date.now() + 4 * 3600 * 1000 + 32 * 60000 + 15 * 1000),
-    promoCodes: {
-        'JOELL50': { discount: 0.5, type: 'percent', max: 50000, desc: 'Diskon 50%' },
-        'WELCOME': { discount: 10000, type: 'fixed', desc: 'Potongan Rp 10.000' },
-        'FLASH25': { discount: 0.25, type: 'percent', max: 25000, desc: 'Diskon 25%' }
-    },
-    imgurClientId: '546c25a59c58ad7',
-    adminPassword: 'X'
-};
-
-// PRODUCTS DATA - LENGKAP 13 PRODUK
-const products = [
-    { id: 1, name: 'Panel Pterodactyl', price: 2000, desc: 'Panel hosting premium dengan performa stabil.', icon: 'fa-server', category: 'hosting', badge: 'hot', variants: [
-        { name: '1GB RAM', price: 2000, stock: 'Tersedia' }, { name: '2GB RAM', price: 3000, stock: 'Tersedia' },
-        { name: '3GB RAM', price: 4000, stock: 'Tersedia' }, { name: '4GB RAM', price: 5000, stock: 'Tersedia' },
-        { name: '5GB RAM', price: 6000, stock: 'Tersedia' }, { name: '6GB RAM', price: 7000, stock: 'Tersedia' },
-        { name: '7GB RAM', price: 8000, stock: 'Tersedia' }, { name: '8GB RAM', price: 9000, stock: 'Tersedia' },
-        { name: '9GB RAM', price: 10000, stock: 'Tersedia' }, { name: '11GB RAM', price: 11000, stock: 'Tersedia' },
-        { name: 'Unlimited RAM', price: 13000, stock: 'Limited' }, { name: 'Reseller Panel', price: 16000, stock: 'Tersedia' },
-        { name: 'Admin Panel', price: 18000, stock: 'Tersedia' }
-    ]},
-    { id: 2, name: 'Jasa Pembuatan Fitur', price: 5000, desc: 'Custom fitur untuk bot WhatsApp.', icon: 'fa-microchip', category: 'hosting', badge: 'new', variants: [
-        { name: 'Add & Fix Fitur', price: 5000, stock: 'Tersedia' }, { name: 'Auto React Status', price: 15000, stock: 'Tersedia' },
-        { name: 'Security IP', price: 25000, stock: 'Tersedia' }, { name: 'Security User+Pass', price: 15000, stock: 'Tersedia' },
-        { name: 'Autojoin Saluran', price: 10000, stock: 'Tersedia' }, { name: 'Auto Show JKT48', price: 55000, stock: 'Limited' }
-    ]},
-    { id: 3, name: 'Sewa Bot & Jadibot', price: 10000, desc: 'Bot WhatsApp siap pakai 24/7.', icon: 'fa-robot', category: 'hosting', variants: [
-        { name: '2 Minggu', price: 10000, stock: 'Tersedia' }, { name: '1 Bulan', price: 20000, stock: 'Tersedia' }, { name: 'Lifetime', price: 30000, stock: 'Limited' }
-    ]},
-    { id: 4, name: 'Script Lily Gen 2', price: 30000, desc: 'Script bot WhatsApp 600+ fitur.', icon: 'fa-database', category: 'hosting', badge: 'pro', variants: [
-        { name: 'No Update', price: 30000, stock: 'Tersedia' }, { name: 'Free 1x Update', price: 35000, stock: 'Tersedia' }, { name: 'Free 2x Update', price: 45000, stock: 'Tersedia' }
-    ]},
-    { id: 5, name: 'Jasa Rename Script', price: 7000, desc: 'Ubah identitas script bot WA.', icon: 'fa-pen-fancy', category: 'hosting', variants: [
-        { name: 'Rename 30%', price: 7000, stock: 'Tersedia' }, { name: 'Rename 60%', price: 12000, stock: 'Tersedia' },
-        { name: 'Rename 80%', price: 15000, stock: 'Tersedia' }, { name: 'Rename 100%', price: 20000, stock: 'Tersedia' }
-    ]},
-    { id: 6, name: 'Domain & Hosting', price: 8000, desc: 'Domain dan hosting website berkualitas.', icon: 'fa-globe', category: 'hosting', variants: [
-        { name: 'Domain .my.id 1th', price: 8000, stock: 'Tersedia' }, { name: 'Domain .biz.id 1th', price: 8000, stock: 'Tersedia' },
-        { name: 'Domain .xyz 1th', price: 75000, stock: 'Tersedia' }, { name: '.xyz + Hosting', price: 550000, stock: 'Tersedia' }
-    ]},
-    { id: 7, name: 'Bot Multi Device', price: 35000, desc: 'Script bot WhatsApp MD dengan fitur modern.', icon: 'fa-code-branch', category: 'script', badge: 'hot', variants: [
-        { name: 'Bot MD Basic', price: 35000, stock: 'Tersedia' }, { name: 'Bot MD Premium', price: 75000, stock: 'Tersedia' }, { name: 'Custom Request', price: 0, stock: 'Hubungi' }
-    ]},
-    { id: 8, name: 'Bot RPG', price: 45000, desc: 'Script bot RPG dengan sistem game.', icon: 'fa-gamepad', category: 'script', variants: [
-        { name: 'Bot RPG Basic', price: 45000, stock: 'Tersedia' }, { name: 'Bot RPG Full', price: 85000, stock: 'Tersedia' }, { name: 'Custom Request', price: 0, stock: 'Hubungi' }
-    ]},
-    { id: 9, name: 'Bot Jaga Group', price: 30000, desc: 'Bot keamanan grup dengan welcome & anti-link.', icon: 'fa-users-cog', category: 'script', variants: [
-        { name: 'Jaga Group Basic', price: 30000, stock: 'Tersedia' }, { name: 'Jaga Group + Pushkontak', price: 70000, stock: 'Tersedia' }, { name: 'Custom Request', price: 0, stock: 'Hubungi' }
-    ]},
-    { id: 10, name: 'Bot Downloader', price: 40000, desc: 'Bot convert media & downloader sosmed.', icon: 'fa-download', category: 'script', badge: 'new', variants: [
-        { name: 'Downloader Basic', price: 40000, stock: 'Tersedia' }, { name: 'Convert + Sticker Full', price: 80000, stock: 'Tersedia' }, { name: 'Custom Request', price: 0, stock: 'Hubungi' }
-    ]},
-    { id: 11, name: 'Bot Auto AI', price: 50000, desc: 'Bot AI pintar untuk chat otomatis.', icon: 'fa-brain', category: 'script', badge: 'pro', variants: [
-        { name: 'AI Basic', price: 50000, stock: 'Tersedia' }, { name: 'AI Premium', price: 95000, stock: 'Tersedia' }, { name: 'Custom Request', price: 0, stock: 'Hubungi' }
-    ]},
-    { id: 12, name: 'Bot Auto Order', price: 55000, desc: 'Bot WhatsApp dengan sistem pembayaran otomatis.', icon: 'fa-credit-card', category: 'script', variants: [
-        { name: 'Auto Order Basic', price: 55000, stock: 'Tersedia' }, { name: 'Auto Order Premium', price: 99000, stock: 'Tersedia' }, { name: 'Custom Request', price: 0, stock: 'Hubungi' }
-    ]},
-    { id: 13, name: 'Topup All Game', price: 0, desc: 'Topup diamond, UC, dan voucher game favoritmu.', icon: 'fa-gamepad', category: 'topup', isTopup: true, variants: [{ name: 'Pilih Game', price: 0, stock: 'Tersedia' }] }
-];
-
-// TOPUP GAMES
-const topupGames = [
-    { name: 'FREE FIRE', logo: 'https://files.catbox.moe/5mzzve.webp', url: 'https://bananagamestore.com/free-fire-b' },
-    { name: 'MOBILE LEGENDS', logo: 'https://files.catbox.moe/6l0i99.webp', url: 'https://bananagamestore.com/mobile-legends-b' },
-    { name: 'HONOR OF KINGS', logo: 'https://files.catbox.moe/jr45bw.png', url: 'https://bananagamestore.com/honor-of-kings' },
-    { name: 'PUBG MOBILE', logo: 'https://files.catbox.moe/ja3cb4.webp', url: 'https://bananagamestore.com/pubg-mobile' },
-    { name: 'MAGIC CHESS', logo: 'https://files.catbox.moe/20pncb.webp', url: 'https://bananagamestore.com/magic-chess-go-go' },
-    { name: 'VALORANT', logo: 'https://files.catbox.moe/o7ggke.webp', url: 'https://bananagamestore.com/valorant' },
-    { name: 'BLOOD STRIKE', logo: 'https://files.catbox.moe/rzmi2o.webp', url: 'https://bananagamestore.com/blood-strike' },
-    { name: 'CALL OF DUTY', logo: 'https://files.catbox.moe/xjzqxc.webp', url: 'https://bananagamestore.com/call-of-duty-mobile-id' },
-    { name: 'ROBLOX', logo: 'https://files.catbox.moe/t347k0.webp', url: 'https://bananagamestore.com/roblox' },
-    { name: 'DELTA FORCE', logo: 'https://files.catbox.moe/kkcx3r.webp', url: 'https://bananagamestore.com/delta-force-garena' },
-    { name: 'POINT BLANK', logo: 'https://files.catbox.moe/y9zkye.webp', url: 'https://bananagamestore.com/ppoint-blank-voucher-cash' },
-    { name: 'STEAM', logo: 'https://files.catbox.moe/s7r8fi.webp', url: 'https://bananagamestore.com/steam-voucher-indonesia-rupiah' }
-];
-
-// ============================================================
-// STATE
-// ============================================================
-let cart = JSON.parse(localStorage.getItem('joellCart')) || [];
-let orders = JSON.parse(localStorage.getItem('joellOrders')) || [];
-let currentUser = JSON.parse(localStorage.getItem('joellUser')) || null;
-let currentProductId = null;
-let selectedVariant = null;
-let activePromo = null;
-let currentOrderChatId = null;
-let isAdminLoggedIn = false;
-let currentAdminChatId = null;
-let logoClickCount = 0;
-let firebaseInitialized = false;
-let firebaseAuth = null;
-let db = null;
-let firestore = null;
-
-// ============================================================
-// FIREBASE REALTIME DATABASE CONFIG
-// ============================================================
-const _0x4f2a = ["QUl6YVN5RG9HNkdQQkRVUnZCQ3piT09TQ1FMSmtucnVGeXM0WEV3", "am9lbGwtc2hvcC1kYjNhNi5maXJlYmFzZWFwcC5jb20=", "am9lbGwtc2hvcC1kYjNhNg==", "am9lbGwtc2hvcC1kYjNhNi5maXJlYmFzZXN0b3JhZ2UuYXBw", "MTAxNjIzOTA2NjI0MA==", "MToxMDE2MjM5MDY2MjQwOndlYjoxODk4ZWM4MGU4OWU0NTg3MjRhYTY1", "aHR0cHM6Ly9qb2VsbC1zaG9wLWRiM2E2LWRlZmF1bHQtcnRkYi5hc2lhLXNvdXRoZWFzdDEuZmlyZWJhc2VkYXRhYmFzZS5hcHAv"];
-const firebaseConfig = {
-    apiKey: atob(_0x4f2a[0]),
-    authDomain: atob(_0x4f2a[1]),
-    projectId: atob(_0x4f2a[2]),
-    storageBucket: atob(_0x4f2a[3]),
-    messagingSenderId: atob(_0x4f2a[4]),
-    appId: atob(_0x4f2a[5]),
-    databaseURL: atob(_0x4f2a[6])
-};
-
-// ============================================================
-// INIT CLOUD SYNC
-// ============================================================
-function initCloudSync() {
-    if (firebaseInitialized) return;
-    
-    if (typeof firebase === 'undefined') {
-        console.warn("Firebase SDK belum dimuat");
-        return;
-    }
-    
-    if (!firebase.auth) {
-        console.warn("Firebase Auth SDK tidak tersedia");
-        return;
-    }
-    
-    try {
-        firebase.initializeApp(firebaseConfig);
-        db = firebase.database();
-        firebaseAuth = firebase.auth();
-        firebaseInitialized = true;
-        
-        if (firebase.firestore) {
-            firestore = firebase.firestore();
-        }
-        
-        firebaseAuth.onAuthStateChanged(async (user) => {
-            if (user) {
-                const userData = await getCurrentUserData();
-                if (userData) {
-                    currentUser = userData;
-                    localStorage.setItem('joellUser', JSON.stringify(currentUser));
-                    updateUserUI();
-                    renderProfilePage();
-                    if (typeof renderOrdersList === 'function') renderOrdersList();
-                }
-            } else {
-                currentUser = null;
-                localStorage.removeItem('joellUser');
-                updateUserUI();
-                renderProfilePage();
-            }
-        });
-        
-        const connectedRef = db.ref(".info/connected");
-        connectedRef.on("value", (snap) => {
-            const statusDot = document.getElementById('cloudStatusDot');
-            const statusText = document.getElementById('cloudStatusText');
-            if (snap.val() === true) {
-                if (statusDot) statusDot.style.background = 'var(--green)';
-                if (statusText) statusText.textContent = 'Terhubung ke Cloud Database';
-                console.log("Cloud Connected");
-            } else {
-                if (statusDot) statusDot.style.background = 'var(--red)';
-                if (statusText) statusText.textContent = 'Terputus dari Cloud Database';
-                console.log("Cloud Disconnected");
-            }
-        });
-
-        db.ref('orders').on('value', (snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                orders = data;
-                localStorage.setItem('joellOrders', JSON.stringify(orders));
-                renderOrdersList();
-                if (isAdminLoggedIn) {
-                    renderAdminOrders();
-                    updateAdminStats();
-                }
-                if (currentOrderChatId) renderOrderChatMessages();
-                if (currentAdminChatId) renderAdminChatMessages();
-                updateUnreadBadges();
-            }
-        });
-        
-        console.log("✅ Firebase initialized successfully");
-    } catch (e) {
-        console.error("Firebase Init Error:", e);
-        const statusDot = document.getElementById('cloudStatusDot');
-        const statusText = document.getElementById('cloudStatusText');
-        if (statusDot) statusDot.style.background = 'var(--red)';
-        if (statusText) statusText.textContent = 'Error: Konfigurasi Cloud Salah';
-    }
+/* Fix untuk scroll di modal */
+.modal-box::-webkit-scrollbar,
+.cart-panel::-webkit-scrollbar,
+.order-chat-messages::-webkit-scrollbar {
+    width: 4px;
 }
 
-function syncOrdersToCloud() {
-    if (db) {
-        db.ref('orders').set(orders).then(() => {
-            console.log("Cloud Sync Success");
-        }).catch(e => {
-            console.error("Sync Error:", e);
-        });
-    }
+.modal-box::-webkit-scrollbar-thumb,
+.cart-panel::-webkit-scrollbar-thumb,
+.order-chat-messages::-webkit-scrollbar-thumb {
+    background: var(--accent);
+    border-radius: 10px;
 }
 
-// ============================================================
-// FIREBASE AUTHENTICATION FUNCTIONS
-// ============================================================
-
-async function getCurrentUserData() {
-    const user = firebaseAuth ? firebaseAuth.currentUser : null;
-    if (!user) return null;
-
-    try {
-        if (firestore) {
-            const doc = await firestore.collection('users').doc(user.uid).get();
-            if (doc.exists) {
-                const data = doc.data();
-                return {
-                    id: user.uid,
-                    name: user.displayName || data.nama || 'User',
-                    email: user.email,
-                    picture: user.photoURL || `https://ui-avatars.com/api/?name=${encodeURIComponent(user.displayName || data.nama || 'User')}&background=random`,
-                    ...data
-                };
-            }
-        }
-        return {
-            id: user.uid,
-            name: user.displayName || 'User',
-            email: user.email,
-            picture: user.photoURL || `https://ui-avatars.com/api/?name=User&background=random`
-        };
-    } catch (e) {
-        console.error("Error getting user data:", e);
-        return {
-            id: user.uid,
-            name: user.displayName || 'User',
-            email: user.email,
-            picture: user.photoURL || `https://ui-avatars.com/api/?name=User&background=random`
-        };
-    }
+/* QRIS Image box di payment */
+.qris-image-box {
+    background: #ffffff;
+    border-radius: 16px;
+    padding: 20px;
+    margin: 0 auto 16px;
+    max-width: 280px;
+    text-align: center;
+    box-shadow: 0 4px 20px rgba(0, 0, 0, 0.3);
 }
 
-// ============================================================
-// REGISTER
-// ============================================================
-async function registerUserCloud(nama, email, password) {
-    try {
-        if (!firebaseAuth) {
-            throw new Error('Firebase Auth belum siap. Refresh halaman.');
-        }
-        
-        const userCredential = await firebaseAuth.createUserWithEmailAndPassword(email, password);
-        const user = userCredential.user;
-        await user.updateProfile({ displayName: nama });
-        
-        if (firestore) {
-            await firestore.collection('users').doc(user.uid).set({
-                nama: nama,
-                email: email,
-                createdAt: firebase.firestore.FieldValue.serverTimestamp()
-            });
-        }
-        
-        const userData = {
-            id: user.uid,
-            name: nama,
-            email: email,
-            picture: `https://ui-avatars.com/api/?name=${encodeURIComponent(nama)}&background=random`
-        };
-        
-        currentUser = userData;
-        localStorage.setItem('joellUser', JSON.stringify(currentUser));
-        updateUserUI();
-        renderProfilePage();
-        
-        return { success: true, user: userData };
-        
-    } catch (error) {
-        let message = 'Terjadi kesalahan saat mendaftar';
-        if (error.code === 'auth/email-already-in-use') message = 'Email sudah terdaftar. Silakan login.';
-        else if (error.code === 'auth/weak-password') message = 'Password minimal 6 karakter.';
-        else if (error.code === 'auth/invalid-email') message = 'Format email tidak valid.';
-        else if (error.code === 'auth/network-request-failed') message = 'Koneksi internet bermasalah.';
-        return { success: false, message: message };
-    }
+.qris-image-box img {
+    width: 100%;
+    max-width: 240px;
+    height: auto;
+    display: block;
+    margin: 0 auto;
 }
 
-// ============================================================
-// LOGIN
-// ============================================================
-async function loginUserCloud(email, password) {
-    try {
-        if (!firebaseAuth) {
-            throw new Error('Firebase Auth belum siap. Refresh halaman.');
-        }
-        
-        const userCredential = await firebaseAuth.signInWithEmailAndPassword(email, password);
-        const userData = await getCurrentUserData();
-        
-        if (userData) {
-            currentUser = userData;
-            localStorage.setItem('joellUser', JSON.stringify(currentUser));
-            updateUserUI();
-            renderProfilePage();
-            if (typeof renderOrdersList === 'function') renderOrdersList();
-        }
-        
-        return { success: true, user: currentUser };
-        
-    } catch (error) {
-        let message = 'Terjadi kesalahan saat login';
-        if (error.code === 'auth/user-not-found') message = 'Akun tidak ditemukan. Silakan daftar dulu.';
-        else if (error.code === 'auth/wrong-password') message = 'Password salah.';
-        else if (error.code === 'auth/invalid-credential') message = 'Email atau password salah.';
-        else if (error.code === 'auth/too-many-requests') message = 'Terlalu banyak percobaan. Coba lagi nanti.';
-        else if (error.code === 'auth/network-request-failed') message = 'Koneksi internet bermasalah.';
-        return { success: false, message: message };
-    }
+/* History item clickable */
+.history-item {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 12px 14px;
+    background: var(--bg-primary);
+    border-radius: 10px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 8px;
+    cursor: pointer;
+    transition: all 0.3s ease;
+    position: relative;
+    z-index: 2;
 }
 
-// ============================================================
-// LOGOUT
-// ============================================================
-async function logoutUserCloud() {
-    try {
-        if (firebaseAuth) {
-            await firebaseAuth.signOut();
-        }
-        
-        const keysToRemove = [];
-        for (let i = 0; i < localStorage.length; i++) {
-            const key = localStorage.key(i);
-            if (key && (key.startsWith('joellUser') || key.includes('firebase'))) {
-                keysToRemove.push(key);
-            }
-        }
-        keysToRemove.forEach(key => localStorage.removeItem(key));
-        
-        localStorage.removeItem('joellUser');
-        currentUser = null;
-        
-        updateUserUI();
-        renderProfilePage();
-        
-        showToast('Logout Berhasil', 'Anda telah keluar dari akun.', 'info');
-        
-        setTimeout(() => window.location.reload(), 800);
-        
-    } catch (error) {
-        showToast('Error', 'Gagal logout: ' + error.message, 'error');
-    }
+.history-item:hover {
+    border-color: var(--accent);
+    transform: translateX(4px);
 }
 
-// ============================================================
-// GOOGLE LOGIN
-// ============================================================
-function handleGoogleLogin(response) {
-    try {
-        const credential = response.credential;
-        const payload = JSON.parse(atob(credential.split('.')[1]));
-        
-        if (firebaseAuth) {
-            const credential2 = firebase.auth.GoogleAuthProvider.credential(credential);
-            firebaseAuth.signInWithCredential(credential2).then((result) => {
-                const user = result.user;
-                currentUser = {
-                    id: user.uid,
-                    name: user.displayName || payload.name,
-                    email: user.email || payload.email,
-                    picture: user.photoURL || payload.picture || `https://ui-avatars.com/api/?name=${encodeURIComponent(payload.name || 'User')}&background=random`,
-                    token: credential
-                };
-                localStorage.setItem('joellUser', JSON.stringify(currentUser));
-                updateUserUI();
-                document.getElementById('loginOverlay').classList.remove('open');
-                showToast('Login Berhasil', `Selamat datang, ${currentUser.name}!`, 'success');
-                renderOrdersList();
-                renderProfilePage();
-            }).catch((error) => {
-                console.error("Google sign in error:", error);
-                showToast('Error', 'Gagal login dengan Google', 'error');
-            });
-        } else {
-            currentUser = {
-                id: payload.sub,
-                name: payload.name,
-                email: payload.email,
-                picture: payload.picture,
-                token: credential
-            };
-            localStorage.setItem('joellUser', JSON.stringify(currentUser));
-            updateUserUI();
-            document.getElementById('loginOverlay').classList.remove('open');
-            showToast('Login Berhasil', `Selamat datang, ${currentUser.name}!`, 'success');
-            renderOrdersList();
-            renderProfilePage();
-        }
-    } catch (e) {
-        console.error("Login Error:", e);
-        showToast('Error', 'Gagal login dengan Google', 'error');
-    }
+.history-status button {
+    background: var(--accent);
+    color: #fff;
+    border: none;
+    border-radius: 30px;
+    padding: 4px 10px;
+    font-size: 0.6rem;
+    cursor: pointer;
+    position: relative;
+    z-index: 3;
 }
 
-// ============================================================
-// HANDLE REGISTER & LOGIN
-// ============================================================
-
-async function handleRegister() {
-    console.log("✅ Register button clicked!");
-    
-    const nama = document.getElementById('regFirstName').value.trim();
-    const email = document.getElementById('regEmail').value.trim();
-    const password = document.getElementById('regPassword').value;
-    const confirm = document.getElementById('regConfirmPassword').value;
-
-    if (!nama || !email || !password || !confirm) {
-        showToast('Error', 'Semua field harus diisi.', 'error');
-        return;
-    }
-    if (password.length < 6) {
-        showToast('Error', 'Password minimal 6 karakter.', 'error');
-        return;
-    }
-    if (password !== confirm) {
-        showToast('Error', 'Konfirmasi password tidak cocok.', 'error');
-        return;
-    }
-    if (!email.includes('@')) {
-        showToast('Error', 'Email tidak valid.', 'error');
-        return;
-    }
-
-    showToast('Loading', 'Mendaftarkan akun...', 'info', 2000);
-
-    try {
-        const result = await registerUserCloud(nama, email, password);
-        if (result.success) {
-            showToast('Berhasil', 'Akun terdaftar di cloud!', 'success');
-            document.getElementById('loginOverlay').classList.remove('open');
-            document.getElementById('regFirstName').value = '';
-            document.getElementById('regEmail').value = '';
-            document.getElementById('regPassword').value = '';
-            document.getElementById('regConfirmPassword').value = '';
-        } else {
-            showToast('Error', result.message, 'error');
-        }
-    } catch (error) {
-        console.error("Register error:", error);
-        showToast('Error', 'Terjadi kesalahan. Coba lagi.', 'error');
-    }
+/* Admin order item - clickable elements */
+.admin-order-item {
+    background: var(--bg-primary);
+    border-radius: var(--radius-xs);
+    padding: 14px;
+    border: 1px solid var(--border-subtle);
+    margin-bottom: 10px;
+    transition: var(--transition);
+    position: relative;
+    z-index: 1;
 }
 
-async function handleLogin() {
-    console.log("✅ Login button clicked!");
-    
-    const identifier = document.getElementById('loginIdentifier').value.trim();
-    const password = document.getElementById('loginPassword').value;
-
-    if (!identifier || !password) {
-        showToast('Error', 'Isi semua field.', 'error');
-        return;
-    }
-
-    let email = identifier;
-    if (!identifier.includes('@') && firestore) {
-        try {
-            const snapshot = await firestore.collection('users').where('nama', '==', identifier).get();
-            if (!snapshot.empty) {
-                email = snapshot.docs[0].data().email;
-            } else {
-                showToast('Gagal', 'Nama tidak ditemukan.', 'error');
-                return;
-            }
-        } catch (e) {
-            showToast('Error', 'Gagal mencari user.', 'error');
-            return;
-        }
-    }
-
-    try {
-        const result = await loginUserCloud(email, password);
-        if (result.success) {
-            document.getElementById('loginOverlay').classList.remove('open');
-            document.getElementById('loginIdentifier').value = '';
-            document.getElementById('loginPassword').value = '';
-            showToast('Selamat datang', `Halo, ${window.currentUser?.name || 'User'}!`, 'success');
-        } else {
-            showToast('Gagal', result.message, 'error');
-        }
-    } catch (error) {
-        console.error("Login error:", error);
-        showToast('Error', 'Terjadi kesalahan. Coba lagi.', 'error');
-    }
+.admin-order-item:hover {
+    border-color: var(--accent);
 }
 
-// ============================================================
-// RENDER FUNCTIONS
-// ============================================================
-function renderTopupGames() {
-    const grid = document.getElementById('topupGrid');
-    if (!grid) return;
-    grid.innerHTML = topupGames.map(g => `
-        <div class="topup-item" onclick="window.open('${g.url}', '_blank')">
-            <img src="${g.logo}" alt="${g.name}" loading="lazy">
-            <span>${g.name}</span>
-        </div>
-    `).join('');
+.admin-chat-btn {
+    padding: 8px 16px;
+    background: linear-gradient(135deg, var(--accent), var(--purple));
+    color: #fff;
+    border: none;
+    border-radius: 40px;
+    font-weight: 700;
+    font-size: 0.8rem;
+    cursor: pointer;
+    transition: var(--transition);
+    position: relative;
+    z-index: 2;
 }
 
-function renderMenus() {
-    const hostingGrid = document.getElementById('gridHosting');
-    const scriptGrid = document.getElementById('gridScript');
-    const topupGrid = document.getElementById('gridTopup');
-    
-    if (hostingGrid) hostingGrid.innerHTML = renderMenuCards(products.filter(p => p.category === 'hosting'));
-    if (scriptGrid) scriptGrid.innerHTML = renderMenuCards(products.filter(p => p.category === 'script'));
-    if (topupGrid) topupGrid.innerHTML = renderMenuCards(products.filter(p => p.category === 'topup'));
+.admin-chat-btn:hover {
+    transform: scale(1.05);
+    box-shadow: 0 0 20px var(--accent-glow);
 }
 
-function renderMenuCards(productList) {
-    return productList.map(p => {
-        const badgeHtml = p.badge ? `<span class="card-badge ${p.badge}">${p.badge.toUpperCase()}</span>` : '';
-        return `
-            <div class="menu-card" data-id="${p.id}" data-topup="${p.isTopup||false}">
-                ${badgeHtml}
-                <i class="fas ${p.icon}"></i>
-                <span>${p.name}</span>
-            </div>
-        `;
-    }).join('');
+.admin-status-select {
+    padding: 4px 12px;
+    border-radius: 30px;
+    border: 1px solid var(--border-subtle);
+    background: var(--bg-card);
+    color: var(--text-primary);
+    font-size: 0.75rem;
+    font-weight: 700;
+    cursor: pointer;
+    outline: none;
+    position: relative;
+    z-index: 2;
 }
 
-// ============================================================
-// DETAIL MODAL
-// ============================================================
-function openDetail(productId) {
-    const p = products.find(x => x.id === productId);
-    if (!p) {
-        showToast('Error', 'Produk tidak ditemukan', 'error');
-        return;
-    }
-    currentProductId = p.id;
-    selectedVariant = p.variants[0];
-    document.getElementById('detailName').textContent = p.name;
-    document.getElementById('detailPrice').textContent = 'Rp ' + (p.variants[0].price || 0).toLocaleString();
-    document.getElementById('detailDesc').textContent = p.desc;
-    const list = document.getElementById('variantList');
-    list.innerHTML = p.variants.map((v, i) => {
-        const priceText = v.price === 0 ? 'Hubungi Admin' : 'Rp ' + v.price.toLocaleString();
-        return `
-            <div class="variant-item ${i === 0 ? 'active' : ''}" data-index="${i}" onclick="selectVariant(this, ${i})">
-                <span class="vname">${v.name}</span>
-                <span class="vprice">${priceText}</span>
-                <span class="vstock"><i class="fas fa-check-circle"></i> ${v.stock}</span>
-            </div>
-        `;
-    }).join('');
-    document.getElementById('detailOverlay').classList.add('open');
+/* Toast container - di atas semua */
+.toast-container {
+    position: fixed;
+    top: 20px;
+    right: 20px;
+    z-index: 99999;
+    display: flex;
+    flex-direction: column;
+    gap: 10px;
+    pointer-events: none;
 }
 
-function selectVariant(el, index) {
-    document.querySelectorAll('.variant-item').forEach(v => v.classList.remove('active'));
-    el.classList.add('active');
-    const p = products.find(x => x.id === currentProductId);
-    if (p) {
-        selectedVariant = p.variants[index];
-        const priceText = selectedVariant.price === 0 ? 'Hubungi Admin' : 'Rp ' + selectedVariant.price.toLocaleString();
-        document.getElementById('detailPrice').textContent = priceText;
-    }
+.toast {
+    pointer-events: all;
 }
-
-// ============================================================
-// CART FUNCTIONS
-// ============================================================
-function updateCartUI() {
-    const count = cart.reduce((a, i) => a + i.qty, 0);
-    const navBadge = document.getElementById('navCartBadge');
-    const totalBadge = document.getElementById('cartBadgeTotal');
-    if (navBadge) navBadge.textContent = count;
-    if (totalBadge) totalBadge.textContent = count;
-    
-    const container = document.getElementById('cartItems');
-    const footer = document.getElementById('cartFooter');
-
-    if (!container) return;
-
-    if (cart.length === 0) {
-        container.innerHTML = `
-            <div class="cart-empty">
-                <i class="fas fa-shopping-bag"></i>
-                <h3>Keranjang kosong</h3>
-                <p>Yuk, isi dengan produk favoritmu!</p>
-            </div>`;
-        if (footer) footer.style.display = 'none';
-        return;
-    }
-    if (footer) footer.style.display = 'block';
-    
-    let subtotal = 0;
-    container.innerHTML = cart.map((item, idx) => {
-        const sub = item.price * item.qty;
-        subtotal += sub;
-        const priceText = item.price === 0 ? 'Hubungi Admin' : 'Rp ' + sub.toLocaleString();
-        return `
-            <div class="cart-item" data-index="${idx}">
-                <div class="item-icon"><i class="fas ${item.icon || 'fa-box'}"></i></div>
-                <div class="item-info">
-                    <div class="item-name">${item.name}</div>
-                    <div class="item-variant">${item.variant}</div>
-                    <div class="item-price">${priceText}</div>
-                </div>
-                <div class="item-actions">
-                    <div class="qty-control">
-                        <button onclick="updateQty(${idx}, -1)"><i class="fas fa-minus"></i></button>
-                        <span class="qty-num">${item.qty}</span>
-                        <button onclick="updateQty(${idx}, 1)"><i class="fas fa-plus"></i></button>
-                    </div>
-                    <button class="item-remove" onclick="removeItem(${idx})"><i class="fas fa-trash-alt"></i></button>
-                </div>
-            </div>
-        `;
-    }).join('');
-
-    let discount = 0;
-    if (activePromo) {
-        if (activePromo.type === 'percent') {
-            discount = Math.min(subtotal * activePromo.discount, activePromo.max || Infinity);
-        } else {
-            discount = activePromo.discount;
-        }
-    }
-    const total = Math.max(0, subtotal - discount);
-
-    document.getElementById('cartSubtotal').textContent = 'Rp ' + subtotal.toLocaleString();
-    document.getElementById('cartDiscount').textContent = discount > 0 ? '- Rp ' + discount.toLocaleString() : 'Rp 0';
-    document.getElementById('cartShipping').textContent = 'Rp 0';
-    document.getElementById('cartTotalDisplay').textContent = 'Rp ' + total.toLocaleString();
-    
-    localStorage.setItem('joellCart', JSON.stringify(cart));
-}
-
-function updateQty(idx, delta) {
-    if (!cart[idx]) return;
-    if (cart[idx].qty + delta < 1) {
-        removeItem(idx);
-        return;
-    }
-    cart[idx].qty += delta;
-    updateCartUI();
-}
-
-function removeItem(idx) {
-    cart.splice(idx, 1);
-    updateCartUI();
-    showToast('Keranjang', 'Item dihapus', 'info');
-}
-
-function addToCart(productId, variantName, variantPrice) {
-    const p = products.find(x => x.id === productId);
-    if (!p) return;
-    const existing = cart.find(c => c.id === productId && c.variant === variantName);
-    if (existing) {
-        existing.qty++;
-    } else {
-        cart.push({ id: p.id, name: p.name, price: variantPrice, variant: variantName, qty: 1, icon: p.icon || 'fa-box' });
-    }
-    localStorage.setItem('joellCart', JSON.stringify(cart));
-    updateCartUI();
-    showToast('Keranjang', `${p.name} ditambahkan!`, 'success');
-}
-
-// ============================================================
-// ORDERS - DENGAN TOMBOL CEK STATUS
-// ============================================================
-function renderOrdersList() {
-    const container = document.getElementById('ordersListContainer');
-    if (!container) return;
-    
-    const myOrders = currentUser ? orders.filter(o => o.userId === currentUser.id) : [];
-
-    if (!myOrders.length) {
-        container.innerHTML = `
-            <div class="empty-orders">
-                <i class="fas fa-box-open"></i>
-                <h3>Belum ada pesanan</h3>
-                <p>Yuk mulai berbelanja!</p>
-            </div>`;
-        return;
-    }
-
-    const statusClass = {
-        'pending': 'pending', 'read': 'read', 'processing': 'processing',
-        'shipped': 'shipped', 'completed': 'completed'
-    };
-    const statusLabel = {
-        'pending': 'pending', 'read': 'Dibaca', 'processing': 'Diproses',
-        'shipped': 'Dikirim', 'completed': 'Selesai'
-    };
-
-    container.innerHTML = '<div class="orders-list">' + myOrders.map(o => {
-        const itemsText = o.items.map(i => `${i.name} (${i.variant})`).join(', ');
-        const paymentStatus = o.paymentStatus || 'pending';
-        const payLabel = paymentStatus === 'paid' ? 'paid' : (paymentStatus === 'expired' ? 'expired' : 'pending');
-        const payColor = paymentStatus === 'paid' ? 'var(--green)' : (paymentStatus === 'expired' ? 'var(--red)' : 'var(--gold)');
-        
-        return `
-            <div class="order-card" onclick="openOrderChat('${o.id}')">
-                <div class="order-card-header">
-                    <span class="order-id">#${o.id}</span>
-                    <span class="order-status ${statusClass[o.status] || 'pending'}">${statusLabel[o.status] || o.status}</span>
-                </div>
-                <div class="order-products">${itemsText}</div>
-                <div class="order-meta">
-                    <span>${new Date(o.createdAt).toLocaleString('id-ID', {day:'2-digit', month:'short', year:'numeric'})}</span>
-                    <span class="order-total">Rp ${o.total.toLocaleString()}</span>
-                </div>
-                <div style="display:flex;gap:8px;margin-top:10px;flex-wrap:wrap;align-items:center;">
-                    <span style="font-size:0.7rem;color:${payColor};background:${payColor}15;padding:4px 12px;border-radius:30px;border:1px solid ${payColor}30;">
-                        <i class="fas fa-credit-card"></i> ${payLabel}
-                    </span>
-                    ${o.invoiceId && o.paymentStatus !== 'paid' && o.paymentStatus !== 'expired' ? `
-                        <button onclick="event.stopPropagation(); checkOrderPaymentStatus('${o.id}')" 
-                                style="font-size:0.65rem;background:linear-gradient(135deg,var(--accent),var(--purple));color:#fff;border:none;padding:6px 16px;border-radius:30px;cursor:pointer;display:flex;align-items:center;gap:6px;">
-                            <i class="fas fa-sync-alt"></i> Cek Status / Lanjut Bayar
-                        </button>
-                    ` : ''}
-                    ${o.invoiceId && o.paymentStatus === 'expired' ? `
-                        <span style="font-size:0.65rem;color:var(--red);background:rgba(239,68,68,0.1);padding:4px 12px;border-radius:30px;border:1px solid rgba(239,68,68,0.2);">
-                            <i class="fas fa-exclamation-circle"></i> Kadaluarsa
-                        </span>
-                    ` : ''}
-                    ${!o.invoiceId && o.paymentStatus !== 'paid' ? `
-                        <span style="font-size:0.65rem;color:var(--text-muted);background:var(--bg-primary);padding:4px 12px;border-radius:30px;border:1px solid var(--border-subtle);">
-                            <i class="fas fa-info-circle"></i> Belum ada invoice
-                        </span>
-                    ` : ''}
-                </div>
-            </div>
-        `;
-    }).join('') + '</div>';
-}
-
-function openOrderChat(orderId) {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-    currentOrderChatId = orderId;
-    document.getElementById('orderChatOrderId').textContent = 'Order: #' + orderId;
-    renderOrderChatMessages();
-    document.getElementById('orderChatOverlay').classList.add('open');
-}
-
-function renderOrderChatMessages() {
-    const order = orders.find(o => o.id === currentOrderChatId);
-    if (!order) return;
-    const container = document.getElementById('orderChatMessages');
-    if (!container) return;
-    const messages = Array.isArray(order.chat) ? order.chat : [];
-    container.innerHTML = messages.map(c => {
-        const isAdmin = c.from === 'admin';
-        const imgHtml = c.image ? `
-            <div class="chat-img-container">
-                <img src="${c.image}" alt="chat-img" onclick="window.open('${c.image}', '_blank')">
-            </div>` : '';
-        
-        const avatar = isAdmin ? 
-            `<div class="chat-avatar" style="background:var(--accent);"><i class="fas fa-robot"></i></div>` : 
-            `<div class="chat-avatar" style="background:var(--purple);">${currentUser ? currentUser.name.charAt(0) : 'U'}</div>`;
-
-        return `
-            <div class="chat-row ${isAdmin ? 'admin-row' : 'user-row'}">
-                ${avatar}
-                <div class="msg ${isAdmin ? 'admin' : 'user'}">
-                    ${c.text || ''}
-                    ${imgHtml}
-                    <span class="time">${c.time}</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-    container.scrollTop = container.scrollHeight;
-}
-
-// ============================================================
-// CEK STATUS PEMBAYARAN DARI HALAMAN PESANAN
-// ============================================================
-function checkOrderPaymentStatus(orderId) {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) {
-        showToast('Error', 'Pesanan tidak ditemukan', 'error');
-        return;
-    }
-    
-    if (!order.invoiceId) {
-        showToast('Info', 'Pesanan ini belum memiliki invoice. Silakan buka payment untuk generate QRIS.', 'info');
-        return;
-    }
-    
-    if (typeof window.checkInvoiceStatus === 'function' && order.paymentStatus !== 'paid') {
-        const history = typeof getInvoiceHistory === 'function' ? getInvoiceHistory() : [];
-        const invoice = history.find(i => i.invoice_id === order.invoiceId);
-        if (invoice && typeof window.openInvoiceDetail === 'function') {
-            window.openInvoiceDetail(order.invoiceId);
-        }
-        window.checkInvoiceStatus(order.invoiceId);
-    } else {
-        showToast('Error', 'Sistem pembayaran tidak tersedia', 'error');
-    }
-}
-
-// ============================================================
-// UPDATE ORDER PAYMENT STATUS
-// ============================================================
-function updateOrderPaymentStatus(invoiceId, status) {
-    if (!orders || !Array.isArray(orders)) return;
-    
-    const order = orders.find(o => o.invoiceId === invoiceId || o.id === invoiceId);
-    if (order) {
-        order.invoiceStatus = status;
-        if (status === 'paid') {
-            order.status = 'processing';
-            order.statusLabel = 'Diproses';
-            order.paymentStatus = 'paid';
-            order.paidAt = order.paidAt || new Date().toISOString();
-            if (order.timeline && order.timeline[0]) {
-                order.timeline[0].completed = true;
-                order.timeline[0].time = new Date().toLocaleString('id-ID', {hour:'2-digit', minute:'2-digit'});
-            }
-            showToast('✅ Pembayaran Lunas!', `Pesanan #${order.id} sedang diproses`, 'success', 5000);
-        } else if (status === 'expired') {
-            order.status = 'pending';
-            order.statusLabel = 'Kadaluarsa';
-            order.paymentStatus = 'expired';
-            order.invoiceStatus = 'expired';
-            showToast('⏰ Kadaluarsa', `Invoice #${order.id} sudah kadaluarsa`, 'warning');
-        }
-        localStorage.setItem('joellOrders', JSON.stringify(orders));
-        syncOrdersToCloud();
-        renderOrdersList();
-        if (isAdminLoggedIn) {
-            renderAdminOrders();
-            updateAdminStats();
-        }
-    }
-}
-
-// ============================================================
-// ADMIN
-// ============================================================
-function enterAdminMode() {
-    localStorage.setItem('joellCurrentPage', 'admin');
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.getElementById('page-admin').classList.add('active');
-    document.getElementById('bottomNav').style.display = 'none';
-    document.getElementById('adminLoginView').style.display = 'block';
-    document.getElementById('adminDashboardView').style.display = 'none';
-    window.scrollTo(0,0);
-}
-
-function renderAdminOrders() {
-    const container = document.getElementById('adminOrdersList');
-    if (!container) return;
-    
-    if (!orders.length) {
-        container.innerHTML = '<p style="color:var(--text-muted);text-align:center;padding:20px;">Belum ada pesanan</p>';
-        return;
-    }
-    const statusOptions = {
-        'pending': 'Menunggu', 'read': 'Dibaca', 'processing': 'Diproses',
-        'shipped': 'Dikirim', 'completed': 'Selesai'
-    };
-    container.innerHTML = orders.map(o => {
-        const itemsText = o.items.map(i => `${i.name} (${i.variant}) x${i.qty}`).join(', ');
-        return `
-            <div class="admin-order-item">
-                <div class="admin-order-header">
-                    <span class="admin-order-id">#${o.id}</span>
-                    <select class="admin-status-select" onchange="updateOrderStatus('${o.id}', this.value)">
-                        ${Object.entries(statusOptions).map(([k,v]) => `<option value="${k}" ${o.status===k?'selected':''}>${v}</option>`).join('')}
-                    </select>
-                </div>
-                <div class="admin-order-meta">
-                    <strong>${o.userName}</strong> · ${o.userEmail} · ${o.userPhone || '-'}
-                </div>
-                <div class="admin-order-products">${itemsText}</div>
-                <div style="display:flex;justify-content:space-between;align-items:center;flex-wrap:wrap;gap:8px;">
-                    <span style="font-weight:800;color:var(--accent-light);">Rp ${o.total.toLocaleString()}</span>
-                    <span style="font-size:0.7rem;color:var(--text-muted);">Invoice: ${o.invoiceId || '-'}</span>
-                    <button class="admin-chat-btn" onclick="openAdminChat('${o.id}')">
-                        <i class="fas fa-comments"></i> Balas Chat
-                    </button>
-                </div>
-            </div>
-        `;
-    }).join('');
-}
-
-function updateAdminStats() {
-    document.getElementById('adminStatTotal').textContent = orders.length;
-    document.getElementById('adminStatPending').textContent = orders.filter(o => o.status === 'pending').length;
-    document.getElementById('adminStatProcessing').textContent = orders.filter(o => o.status === 'processing').length;
-    document.getElementById('adminStatCompleted').textContent = orders.filter(o => o.status === 'completed').length;
-}
-
-function updateOrderStatus(orderId, newStatus) {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-    order.status = newStatus;
-    order.statusLabel = {pending:'Menunggu',read:'Dibaca',processing:'Diproses',shipped:'Dikirim',completed:'Selesai'}[newStatus];
-    localStorage.setItem('joellOrders', JSON.stringify(orders));
-    syncOrdersToCloud();
-    updateAdminStats();
-    renderAdminOrders();
-    showToast('Status Updated', `Order #${orderId} → ${order.statusLabel}`, 'success');
-}
-
-function openAdminChat(orderId) {
-    const order = orders.find(o => o.id === orderId);
-    if (!order) return;
-    currentAdminChatId = orderId;
-    document.getElementById('adminChatUserName').textContent = order.userName;
-    document.getElementById('adminChatOrderId').textContent = 'Order: #' + orderId;
-    
-    const userImg = document.getElementById('adminChatUserImg');
-    if (userImg) {
-        userImg.innerHTML = `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(order.userName)}&background=random" style="width:100%;height:100%;border-radius:50%;">`;
-    }
-
-    renderAdminChatMessages();
-    document.getElementById('adminChatOverlay').classList.add('open');
-}
-
-function renderAdminChatMessages() {
-    const order = orders.find(o => o.id === currentAdminChatId);
-    if (!order) return;
-    const container = document.getElementById('adminChatMessages');
-    if (!container) return;
-    const messages = Array.isArray(order.chat) ? order.chat : [];
-    container.innerHTML = messages.map(c => {
-        const isAdmin = c.from === 'admin';
-        const imgHtml = c.image ? `
-            <div class="chat-img-container">
-                <img src="${c.image}" alt="chat-img" onclick="window.open('${c.image}', '_blank')">
-            </div>` : '';
-
-        const avatar = isAdmin ? 
-            `<div class="chat-avatar" style="background:var(--accent);"><i class="fas fa-robot"></i></div>` : 
-            `<div class="chat-avatar" style="background:var(--purple);">${order.userName.charAt(0)}</div>`;
-
-        return `
-            <div class="chat-row ${isAdmin ? 'user-row' : 'admin-row'}">
-                ${avatar}
-                <div class="msg ${isAdmin ? 'user' : 'admin'}">
-                    ${c.text || ''}
-                    ${imgHtml}
-                    <span class="time">${c.time}</span>
-                </div>
-            </div>
-        `;
-    }).join('');
-    container.scrollTop = container.scrollHeight;
-}
-
-function refreshAdminOrders() {
-    const btn = document.getElementById('btnRefreshAdmin');
-    if (btn) btn.querySelector('i').classList.add('fa-spin');
-    
-    if (db) {
-        db.ref('orders').once('value').then((snapshot) => {
-            const data = snapshot.val();
-            if (data) {
-                orders = data;
-                localStorage.setItem('joellOrders', JSON.stringify(orders));
-                renderAdminOrders();
-                updateAdminStats();
-                showToast('Berhasil', 'Data pesanan diperbarui!', 'success', 2000);
-            }
-        }).finally(() => {
-            if (btn) btn.querySelector('i').classList.remove('fa-spin');
-        });
-    } else {
-        showToast('Error', 'Database tidak terhubung', 'error');
-        if (btn) btn.querySelector('i').classList.remove('fa-spin');
-    }
-}
-
-// ============================================================
-// NAVIGATION
-// ============================================================
-function navigateTo(page) {
-    if (page === 'admin') {
-        enterAdminMode();
-        return;
-    }
-    localStorage.setItem('joellCurrentPage', page);
-
-    document.querySelectorAll('.page').forEach(p => p.classList.remove('active'));
-    document.querySelectorAll('.admin-page').forEach(p => p.classList.remove('active'));
-    const target = document.getElementById('page-' + page);
-    if (target) target.classList.add('active');
-    document.querySelectorAll('.bottom-nav .nav-item').forEach(item => {
-        item.classList.toggle('active', item.dataset.page === page);
-    });
-    document.getElementById('bottomNav').style.display = 'flex';
-    window.scrollTo({ top: 0, behavior: 'smooth' });
-    if (page === 'orders') renderOrdersList();
-    if (page === 'profile') renderProfilePage();
-}
-
-function renderProfilePage() {
-    const userView = document.getElementById('userProfileView');
-    const guestView = document.getElementById('guestProfileView');
-    if (currentUser) {
-        if (userView) userView.style.display = 'block';
-        if (guestView) guestView.style.display = 'none';
-        document.getElementById('userProfileImg').src = currentUser.picture;
-        document.getElementById('userProfileName').textContent = currentUser.name;
-        document.getElementById('userProfileEmail').textContent = currentUser.email;
-        const userOrders = orders.filter(o => o.userId === currentUser.id);
-        document.getElementById('statOrderCount').textContent = userOrders.length;
-        
-        const logoutBtn = document.getElementById('btnProfileLogoutPage');
-        if (logoutBtn) {
-            logoutBtn.onclick = async function() {
-                if (confirm('Apakah Anda yakin ingin keluar?')) {
-                    await logoutUserCloud();
-                }
-            };
-        }
-    } else {
-        if (userView) userView.style.display = 'none';
-        if (guestView) guestView.style.display = 'block';
-    }
-}
-
-function updateUserUI() {
-    const section = document.getElementById('userSection');
-    if (currentUser) {
-        section.innerHTML = `
-            <div class="user-chip" id="userChip" title="${currentUser.name}">
-                <img src="${currentUser.picture}" alt="avatar">
-                <span class="user-name">${currentUser.name.split(' ')[0]}</span>
-            </div>
-        `;
-        document.getElementById('userChip').addEventListener('click', openProfileSettings);
-    } else {
-        section.innerHTML = `
-            <button class="header-btn" id="loginBtn" title="Login">
-                <i class="fas fa-sign-in-alt"></i>
-            </button>
-        `;
-        document.getElementById('loginBtn').addEventListener('click', function() {
-            document.getElementById('loginOverlay').classList.add('open');
-        });
-    }
-}
-
-function openProfileSettings() {
-    if (!currentUser) return;
-    document.getElementById('profileNameInput').value = currentUser.name;
-    document.getElementById('profileEmailInput').value = currentUser.email;
-    document.getElementById('profilePreview').src = currentUser.picture;
-    document.getElementById('profileOverlay').classList.add('open');
-}
-
-function handleProfilePhotoUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-    if (file.size > 2 * 1024 * 1024) { showToast('Error', 'Ukuran file maksimal 2MB', 'error'); return; }
-    const reader = new FileReader();
-    reader.onload = function(e) {
-        const base64 = e.target.result;
-        document.getElementById('profilePreview').src = base64;
-        currentUser.picture = base64;
-        localStorage.setItem('joellUser', JSON.stringify(currentUser));
-    };
-    reader.readAsDataURL(file);
-}
-
-// ============================================================
-// TOAST
-// ============================================================
-function showToast(title, message, type = 'info', duration = 3000) {
-    const container = document.getElementById('toastContainer');
-    if (!container) return;
-    
-    const toast = document.createElement('div');
-    toast.className = 'toast';
-    const icons = { success: 'fa-check-circle', error: 'fa-times-circle', info: 'fa-info-circle', warning: 'fa-exclamation-circle' };
-    toast.innerHTML = `
-        <div class="toast-icon ${type}"><i class="fas ${icons[type] || icons.info}"></i></div>
-        <div class="toast-content"><h4>${title}</h4><p>${message}</p></div>
-    `;
-    container.appendChild(toast);
-    setTimeout(() => {
-        toast.classList.add('toast-out');
-        setTimeout(() => toast.remove(), 300);
-    }, duration);
-}
-
-// ============================================================
-// SEARCH
-// ============================================================
-function doSearch() {
-    const searchInput = document.getElementById('searchInput');
-    if (!searchInput) return;
-    const keyword = searchInput.value.toLowerCase().trim();
-    const cats = ['hosting', 'script', 'topup'];
-    cats.forEach(cat => {
-        const filtered = products.filter(p => {
-            const matchText = p.name.toLowerCase().includes(keyword) || p.desc.toLowerCase().includes(keyword);
-            return p.category === cat && matchText;
-        });
-        const grid = document.getElementById('grid' + cat.charAt(0).toUpperCase() + cat.slice(1));
-        if (grid) grid.innerHTML = renderMenuCards(filtered);
-    });
-}
-
-// ============================================================
-// UNREAD BADGES
-// ============================================================
-function updateUnreadBadges() {
-    if (!orders || !Array.isArray(orders)) return;
-    
-    let totalUnreadUser = 0;
-    let totalUnreadAdmin = 0;
-
-    orders.forEach(order => {
-        if (!order.chat || !Array.isArray(order.chat)) return;
-        const lastMsg = order.chat[order.chat.length - 1];
-        if (!lastMsg) return;
-
-        if (lastMsg.from === 'admin') {
-            if (currentUser && order.userId === currentUser.id) {
-                totalUnreadUser++;
-            }
-        } else if (lastMsg.from === 'user') {
-            totalUnreadAdmin++;
-        }
-    });
-
-    const navBadge = document.getElementById('navOrdersBadge');
-    if (navBadge) {
-        if (totalUnreadUser > 0) {
-            navBadge.textContent = totalUnreadUser;
-            navBadge.style.display = 'block';
-        } else {
-            navBadge.style.display = 'none';
-        }
-    }
-
-    const adminBadge = document.getElementById('adminChatBadge');
-    if (adminBadge) {
-        if (totalUnreadAdmin > 0) {
-            adminBadge.textContent = totalUnreadAdmin;
-            adminBadge.style.display = 'block';
-        } else {
-            adminBadge.style.display = 'none';
-        }
-    }
-}
-
-// ============================================================
-// HANDLE CHAT FILE UPLOAD
-// ============================================================
-function handleChatFileUpload(input, senderType) {
-    const file = input.files[0];
-    if (!file) return;
-
-    if (file.size > 10 * 1024 * 1024) {
-        showToast('Error', 'Gambar terlalu besar (Maks 10MB)', 'error');
-        input.value = '';
-        return;
-    }
-
-    const orderId = senderType === 'user' ? currentOrderChatId : currentAdminChatId;
-    if (!orderId) {
-        showToast('Error', 'Sesi chat tidak ditemukan.', 'error');
-        input.value = '';
-        return;
-    }
-
-    const orderIndex = orders.findIndex(o => o.id === orderId);
-    if (orderIndex === -1) {
-        showToast('Error', 'Data pesanan tidak ditemukan.', 'error');
-        input.value = '';
-        return;
-    }
-
-    showToast('Chat', 'Sedang mengirim gambar...', 'info');
-
-    const formData = new FormData();
-    formData.append('image', file);
-
-    try {
-        fetch('https://api.imgur.com/3/image', {
-            method: 'POST',
-            headers: { 'Authorization': 'Client-ID ' + CONFIG.imgurClientId },
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) throw new Error(`HTTP error! status: ${response.status}`);
-            return response.json();
-        })
-        .then(result => {
-            if (result.success && result.data && result.data.link) {
-                const newMessage = {
-                    from: senderType,
-                    text: '',
-                    image: result.data.link,
-                    time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-                };
-
-                if (!orders[orderIndex].chat) orders[orderIndex].chat = [];
-                orders[orderIndex].chat.push(newMessage);
-
-                localStorage.setItem('joellOrders', JSON.stringify(orders));
-                syncOrdersToCloud();
-
-                if (senderType === 'user') renderOrderChatMessages();
-                else renderAdminChatMessages();
-
-                showToast('Berhasil', 'Gambar berhasil dikirim!', 'success');
-            } else {
-                throw new Error('Gagal mendapatkan link gambar.');
-            }
-        })
-        .catch(error => {
-            console.error("Image Upload Error:", error);
-            showToast('Error', 'Gagal kirim gambar: ' + error.message, 'error', 5000);
-        });
-    } catch (error) {
-        showToast('Error', 'Gagal kirim gambar: ' + error.message, 'error', 5000);
-    } finally {
-        input.value = '';
-    }
-}
-
-function handleAdminDocUpload(input) {
-    const file = input.files[0];
-    if (!file) return;
-    
-    const orderId = currentAdminChatId;
-    if (!orderId) {
-        showToast('Error', 'ID Pesanan tidak ditemukan.', 'error');
-        input.value = '';
-        return;
-    }
-    
-    const orderIndex = orders.findIndex(o => o.id === orderId);
-    if (orderIndex === -1) {
-        showToast('Error', 'Data pesanan tidak ditemukan.', 'error');
-        input.value = '';
-        return;
-    }
-
-    if (file.size <= 500 * 1024) {
-        showToast('Admin', 'Mengkonversi file ke base64...', 'info');
-        try {
-            const reader = new FileReader();
-            reader.onload = function(e) {
-                const base64 = e.target.result;
-                const newMessage = {
-                    from: 'admin',
-                    text: `📄 File: ${file.name}`,
-                    file: base64,
-                    fileName: file.name,
-                    time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-                };
-                
-                if (!orders[orderIndex].chat) orders[orderIndex].chat = [];
-                orders[orderIndex].chat.push(newMessage);
-                
-                localStorage.setItem('joellOrders', JSON.stringify(orders));
-                syncOrdersToCloud();
-                renderAdminChatMessages();
-                showToast('Berhasil', 'File berhasil dikirim (Base64)!', 'success');
-            };
-            reader.readAsDataURL(file);
-        } catch (err) {
-            showToast('Error', 'Gagal memproses file.', 'error');
-        } finally {
-            input.value = '';
-        }
-        return;
-    }
-
-    if (file.size > 20 * 1024 * 1024) {
-        showToast('Error', 'File terlalu besar. Maksimal 20MB.', 'error');
-        input.value = '';
-        return;
-    }
-
-    showToast('Admin', 'Sedang mengupload file...', 'info');
-    
-    const formData = new FormData();
-    formData.append('file', file);
-    
-    try {
-        fetch('https://file.io/?expires=1w&autoDelete=false', {
-            method: 'POST',
-            body: formData
-        })
-        .then(response => {
-            if (!response.ok) throw new Error(`Server error: ${response.status}`);
-            return response.json();
-        })
-        .then(result => {
-            if (result.success || result.link) {
-                const fileUrl = result.link || result.url || result.file;
-                if (!fileUrl) throw new Error('URL file tidak ditemukan.');
-                
-                const newMessage = {
-                    from: 'admin',
-                    text: `📄 File: ${file.name}`,
-                    file: fileUrl,
-                    fileName: file.name,
-                    time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-                };
-                
-                if (!orders[orderIndex].chat) orders[orderIndex].chat = [];
-                orders[orderIndex].chat.push(newMessage);
-                
-                localStorage.setItem('joellOrders', JSON.stringify(orders));
-                syncOrdersToCloud();
-                renderAdminChatMessages();
-                showToast('Berhasil', 'File berhasil dikirim!', 'success');
-            } else {
-                throw new Error(result.message || 'Gagal mengunggah file.');
-            }
-        })
-        .catch(error => {
-            console.error("File Upload Error:", error);
-            showToast('Error', 'Gagal upload: ' + error.message, 'error', 5000);
-        });
-    } catch (error) {
-        showToast('Error', 'Gagal upload: ' + error.message, 'error', 5000);
-    } finally {
-        input.value = '';
-    }
-}
-
-// ============================================================
-// DOM CONTENT LOADED - MAIN INIT
-// ============================================================
-document.addEventListener('DOMContentLoaded', function() {
-    console.log('✅ JOELL SHOP Initializing...');
-
-    renderMenus();
-    renderTopupGames();
-    updateCartUI();
-    updateUserUI();
-    renderOrdersList();
-    renderProfilePage();
-    initCloudSync();
-
-    // ===== TAB SWITCH LOGIN/REGISTER =====
-    const loginTabs = document.querySelectorAll('.login-tab');
-    const loginForm = document.getElementById('loginForm');
-    const registerForm = document.getElementById('registerForm');
-    
-    loginTabs.forEach(tab => {
-        tab.addEventListener('click', function() {
-            const target = this.dataset.tab;
-            loginTabs.forEach(t => {
-                t.classList.remove('active');
-                t.style.background = 'transparent';
-                t.style.color = 'var(--text-secondary)';
-            });
-            this.classList.add('active');
-            this.style.background = 'var(--accent)';
-            this.style.color = '#fff';
-
-            if (target === 'login') {
-                loginForm.style.display = 'block';
-                registerForm.style.display = 'none';
-            } else {
-                loginForm.style.display = 'none';
-                registerForm.style.display = 'block';
-            }
-        });
-    });
-
-    // ===== CLICK EVENT UNTUK MENU CARD =====
-    document.querySelectorAll('.grid-menu').forEach(grid => {
-        grid.addEventListener('click', function(e) {
-            const card = e.target.closest('.menu-card');
-            if (!card) return;
-            const id = parseInt(card.dataset.id);
-            const product = products.find(p => p.id === id);
-            if (!product) return;
-            
-            if (product.isTopup) {
-                const overlay = document.getElementById('topupOverlay');
-                if (overlay) overlay.classList.add('open');
-                return;
-            }
-            openDetail(id);
-        });
-    });
-
-    // ===== ADD TO CART BUTTON =====
-    const addBtn = document.getElementById('addToCartBtn');
-    if (addBtn) {
-        addBtn.addEventListener('click', function() {
-            if (!selectedVariant) { showToast('Error', 'Pilih varian dulu', 'error'); return; }
-            addToCart(currentProductId, selectedVariant.name, selectedVariant.price);
-            document.getElementById('detailOverlay').classList.remove('open');
-        });
-    }
-
-    // ===== BUY NOW BUTTON =====
-    const buyBtn = document.getElementById('buyNowBtn');
-    if (buyBtn) {
-        buyBtn.addEventListener('click', function() {
-            if (!selectedVariant) { showToast('Error', 'Pilih varian dulu', 'error'); return; }
-            addToCart(currentProductId, selectedVariant.name, selectedVariant.price);
-            document.getElementById('detailOverlay').classList.remove('open');
-            document.getElementById('cartOverlay').classList.add('open');
-        });
-    }
-
-    // ===== CHECKOUT BUTTON =====
-    const checkoutBtn = document.getElementById('checkoutBtn');
-    if (checkoutBtn) {
-        checkoutBtn.addEventListener('click', function() {
-            if (!cart.length) { showToast('Error', 'Keranjang kosong', 'error'); return; }
-            if (!currentUser) {
-                showToast('Login Diperlukan', 'Silakan login untuk checkout', 'warning');
-                document.getElementById('loginOverlay').classList.add('open');
-                return;
-            }
-            const container = document.getElementById('checkoutItems');
-            let total = 0;
-            container.innerHTML = cart.map(item => {
-                const sub = item.price * item.qty;
-                total += sub;
-                return `<div class="order-item-line">${item.name} (${item.variant}) x${item.qty} = Rp ${sub.toLocaleString()}</div>`;
-            }).join('');
-            document.getElementById('checkoutTotal').textContent = 'Total: Rp ' + total.toLocaleString();
-            document.getElementById('coName').value = currentUser.name || '';
-            document.getElementById('coEmail').value = currentUser.email || '';
-            document.getElementById('cartOverlay').classList.remove('open');
-            document.getElementById('checkoutOverlay').classList.add('open');
-        });
-    }
-
-    // ===== CHECKOUT FORM - AUTO INVOICE =====
-    const checkoutForm = document.getElementById('checkoutForm');
-    if (checkoutForm) {
-        checkoutForm.addEventListener('submit', async function(e) {
-            e.preventDefault();
-            if (!cart.length) {
-                showToast('Error', 'Keranjang kosong', 'error');
-                return;
-            }
-            
-            const name = document.getElementById('coName').value.trim();
-            const email = document.getElementById('coEmail').value.trim();
-            const phone = document.getElementById('coPhone').value.trim();
-            
-            if (!name || !email || !phone) {
-                showToast('Error', 'Harap lengkapi semua data', 'error');
-                return;
-            }
-            
-            const total = cart.reduce((a, i) => a + i.price * i.qty, 0);
-            const orderId = 'JOELL-' + Math.random().toString(36).substr(2, 4).toUpperCase() + '-' + Math.random().toString(36).substr(2, 4).toUpperCase();
-            
-            const order = {
-                id: orderId,
-                userId: currentUser ? currentUser.id : 'guest',
-                userName: name,
-                userEmail: email,
-                userPhone: phone,
-                address: document.getElementById('coAddress').value || '',
-                payment: 'online',
-                items: [...cart],
-                total: total,
-                status: 'pending',
-                statusLabel: 'Menunggu Pembayaran',
-                paymentStatus: 'pending',
-                invoiceId: null,
-                invoiceStatus: 'pending',
-                invoiceTotal: total,
-                createdAt: new Date().toISOString(),
-                timeline: [
-                    { step: 'Menunggu Pembayaran', desc: 'Silakan selesaikan pembayaran', time: '-', completed: false },
-                    { step: 'Pembayaran Diverifikasi', desc: 'Menunggu konfirmasi pembayaran', time: '-', completed: false },
-                    { step: 'Sedang Diproses', desc: 'Tim menyiapkan pesanan Anda', time: '-', completed: false },
-                    { step: 'Pesanan Selesai', desc: 'Detail produk dikirim ke akun Anda', time: '-', completed: false }
-                ],
-                chat: [
-                    { 
-                        from: 'admin', 
-                        text: `Halo ${name}! Terima kasih telah memesan. Silakan selesaikan pembayaran Anda.`,
-                        time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}) 
-                    }
-                ]
-            };
-            
-            orders.unshift(order);
-            localStorage.setItem('joellOrders', JSON.stringify(orders));
-            syncOrdersToCloud();
-            
-            cart = [];
-            activePromo = null;
-            localStorage.setItem('joellCart', JSON.stringify(cart));
-            updateCartUI();
-            
-            document.getElementById('checkoutOverlay').classList.remove('open');
-            
-            showToast('⏳ Membuat Invoice...', 'Silakan tunggu sebentar', 'info', 2000);
-
-            setTimeout(function() {
-                if (typeof window.openPaymentModal === 'function') {
-                    window.openPaymentModal(order);
-                }
-            }, 300);
-            renderOrdersList();
-        });
-    }
-
-    // ===== CLEAR CART =====
-    const clearBtn = document.getElementById('clearCartBtn');
-    if (clearBtn) {
-        clearBtn.addEventListener('click', function() {
-            if (!cart.length) return;
-            if (confirm('Kosongkan keranjang?')) {
-                cart = [];
-                activePromo = null;
-                document.getElementById('promoInput').value = '';
-                document.getElementById('promoMessage').textContent = '';
-                updateCartUI();
-                showToast('Keranjang', 'Keranjang dikosongkan', 'info');
-            }
-        });
-    }
-
-    // ===== PROMO BUTTON =====
-    const promoBtn = document.getElementById('promoBtn');
-    if (promoBtn) {
-        promoBtn.addEventListener('click', function() {
-            const code = document.getElementById('promoInput').value.trim().toUpperCase();
-            const msgEl = document.getElementById('promoMessage');
-            if (!code) { msgEl.textContent = 'Masukkan kode promo'; msgEl.className = 'promo-message error'; return; }
-            if (CONFIG.promoCodes[code]) {
-                activePromo = { code, ...CONFIG.promoCodes[code] };
-                msgEl.textContent = '✅ ' + activePromo.desc + ' berhasil diterapkan!';
-                msgEl.className = 'promo-message success';
-                showToast('Promo Applied', activePromo.desc, 'success');
-                updateCartUI();
-            } else {
-                activePromo = null;
-                msgEl.textContent = '❌ Kode promo tidak valid';
-                msgEl.className = 'promo-message error';
-            }
-        });
-    }
-
-    // ===== THEME TOGGLE =====
-    const themeToggle = document.getElementById('themeToggle');
-    if (themeToggle) {
-        const savedTheme = localStorage.getItem('joellTheme') || 'dark';
-        document.documentElement.setAttribute('data-theme', savedTheme);
-        themeToggle.innerHTML = `<i class="fas fa-${savedTheme === 'dark' ? 'sun' : 'moon'}"></i>`;
-        themeToggle.addEventListener('click', function() {
-            const current = document.documentElement.getAttribute('data-theme');
-            const next = current === 'dark' ? 'light' : 'dark';
-            document.documentElement.setAttribute('data-theme', next);
-            localStorage.setItem('joellTheme', next);
-            this.innerHTML = `<i class="fas fa-${next === 'dark' ? 'sun' : 'moon'}"></i>`;
-            showToast('Theme Changed', `Switched to ${next} mode`, 'info');
-        });
-    }
-
-    // ===== LOGIN BUTTON =====
-    const loginBtn = document.getElementById('loginBtn');
-    if (loginBtn) {
-        loginBtn.addEventListener('click', function() {
-            document.getElementById('loginOverlay').classList.add('open');
-        });
-    }
-
-    // ===== ADMIN LOGIN =====
-    const adminLoginBtn = document.getElementById('adminLoginBtn');
-    if (adminLoginBtn) {
-        adminLoginBtn.addEventListener('click', function() {
-            const input = document.getElementById('adminPasswordInput').value;
-            if (input === CONFIG.adminPassword) {
-                isAdminLoggedIn = true;
-                document.getElementById('adminLoginView').style.display = 'none';
-                document.getElementById('adminDashboardView').style.display = 'block';
-                localStorage.setItem('joellAdminSession', '1');
-                const logoutBtn = document.getElementById('adminLogoutBtn');
-                if (logoutBtn) logoutBtn.style.display = 'block';
-                showToast('Admin', 'Login berhasil!', 'success');
-                renderAdminOrders();
-                updateAdminStats();
-            } else {
-                showToast('Error', 'Password salah!', 'error');
-            }
-        });
-    }
-
-    // ===== ADMIN LOGOUT =====
-    const adminLogoutBtn = document.getElementById('adminLogoutBtn');
-    if (adminLogoutBtn) {
-        adminLogoutBtn.addEventListener('click', function() {
-            isAdminLoggedIn = false;
-            localStorage.removeItem('joellAdminSession');
-            document.getElementById('adminDashboardView').style.display = 'none';
-            document.getElementById('adminLoginView').style.display = 'block';
-            this.style.display = 'none';
-        });
-    }
-
-    // ===== ADMIN BACK BUTTON =====
-    const adminBackBtn = document.getElementById('adminBackBtn');
-    if (adminBackBtn) {
-        adminBackBtn.addEventListener('click', function() {
-            localStorage.removeItem('joellCurrentPage');
-            document.getElementById('page-admin').classList.remove('active');
-            document.getElementById('page-home').classList.add('active');
-            document.getElementById('bottomNav').style.display = 'flex';
-            isAdminLoggedIn = false;
-        });
-    }
-
-    // ===== DIRECT ADMIN ROUTE =====
-    if (window.location.pathname.replace(/\/$/, '') === '/admin') {
-        enterAdminMode();
-    }
-
-    // ===== LOGO CLICK FOR ADMIN =====
-    const logoArea = document.getElementById('logoArea');
-    if (logoArea) {
-        logoArea.addEventListener('click', function() {
-            logoClickCount++;
-            if (logoClickCount >= 5) {
-                logoClickCount = 0;
-                enterAdminMode();
-            }
-            setTimeout(() => { if (logoClickCount > 0) logoClickCount--; }, 2000);
-        });
-    }
-
-    // ===== NAVIGATION =====
-    document.querySelectorAll('.bottom-nav .nav-item').forEach(btn => {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            const page = this.dataset.page;
-            if (page === 'cart') {
-                document.getElementById('cartOverlay').classList.toggle('open');
-                return;
-            }
-            if (page) {
-                navigateTo(page);
-            }
-        });
-    });
-
-    // ===== BACK TO TOP =====
-    const backToTop = document.getElementById('backToTop');
-    if (backToTop) {
-        window.addEventListener('scroll', function() {
-            backToTop.classList.toggle('visible', window.scrollY > 300);
-        });
-        backToTop.addEventListener('click', function() {
-            window.scrollTo({ top: 0, behavior: 'smooth' });
-        });
-    }
-
-    // ===== TRACKING BUTTON =====
-    const trackBtn = document.getElementById('trackBtn');
-    if (trackBtn) {
-        trackBtn.addEventListener('click', function() {
-            const input = document.getElementById('trackInput').value.trim();
-            if (!input) { showToast('Error', 'Masukkan ID pesanan', 'error'); return; }
-            
-            const order = orders.find(o => o.id === input.replace('#', ''));
-            if (!order) {
-                showToast('Tidak Ditemukan', 'ID pesanan tidak valid', 'error');
-                return;
-            }
-            
-            document.getElementById('trackOrderId').textContent = '#' + order.id;
-            const statusConfig = {
-                'pending': { label: 'Menunggu', color: 'var(--gold)', bg: 'rgba(251,191,36,0.15)' },
-                'read': { label: 'Dibaca Admin', color: 'var(--accent-light)', bg: 'rgba(99,102,241,0.15)' },
-                'processing': { label: 'Sedang Diproses', color: 'var(--accent-secondary)', bg: 'rgba(6,182,212,0.15)' },
-                'shipped': { label: 'Dikirim', color: 'var(--purple)', bg: 'rgba(168,85,247,0.15)' },
-                'completed': { label: 'Selesai', color: 'var(--green)', bg: 'rgba(16,185,129,0.15)' }
-            };
-            const cfg = statusConfig[order.status] || statusConfig['pending'];
-            const badge = document.getElementById('trackStatusBadge');
-            badge.innerHTML = `<i class="fas fa-circle"></i> ${cfg.label}`;
-            badge.style.background = cfg.bg;
-            badge.style.color = cfg.color;
-            
-            document.getElementById('trackProducts').textContent = order.items.map(i => `${i.name} (${i.variant}) x${i.qty}`).join(', ');
-            document.getElementById('trackDate').textContent = new Date(order.createdAt).toLocaleString('id-ID');
-            
-            const timeline = document.getElementById('trackingTimeline');
-            timeline.innerHTML = order.timeline.map((t, i) => {
-                const isCompleted = t.completed;
-                const isActive = !t.completed && (i === 0 || order.timeline[i-1].completed);
-                return `
-                    <div class="tracking-step ${isCompleted ? 'completed' : ''} ${isActive ? 'active' : ''}">
-                        <div class="tracking-dot">${isCompleted ? '<i class="fas fa-check"></i>' : (isActive ? '<i class="fas fa-circle"></i>' : '<i class="fas fa-clock"></i>')}</div>
-                        <div class="tracking-info">
-                            <h4>${t.step}</h4>
-                            <p>${t.desc}</p>
-                            <div class="time">${t.time}</div>
-                        </div>
-                    </div>
-                `;
-            }).join('');
-            
-            const trackChatBtn = document.getElementById('trackChatBtn');
-            if (trackChatBtn) {
-                trackChatBtn.onclick = function() {
-                    document.getElementById('trackResult').style.display = 'none';
-                    openOrderChat(order.id);
-                };
-            }
-            
-            document.getElementById('trackResult').style.display = 'block';
-            showToast('Tracking', 'Data pesanan ditemukan', 'success');
-        });
-    }
-
-    // ===== SERVER STATUS REFRESH =====
-    const refreshStatusBtn = document.getElementById('refreshStatus');
-    if (refreshStatusBtn) {
-        refreshStatusBtn.addEventListener('click', function() {
-            this.classList.add('spinning');
-            setTimeout(() => {
-                this.classList.remove('spinning');
-                const pings = document.querySelectorAll('.server-ping');
-                pings.forEach(p => {
-                    const newPing = Math.floor(Math.random() * 100) + 5;
-                    p.textContent = newPing + 'ms';
-                    p.style.color = newPing > 80 ? 'var(--orange)' : 'var(--green)';
-                });
-                showToast('Server Status', 'Status server diperbarui', 'success');
-            }, 1000);
-        });
-    }
-
-    // ===== ORDER CHAT SEND =====
-    const orderChatSend = document.getElementById('orderChatSend');
-    if (orderChatSend) {
-        orderChatSend.addEventListener('click', function() {
-            const input = document.getElementById('orderChatInput');
-            const text = input.value.trim();
-            if (!text || !currentOrderChatId) return;
-            const order = orders.find(o => o.id === currentOrderChatId);
-            if (!order) return;
-            if (!Array.isArray(order.chat)) order.chat = [];
-            order.chat.push({
-                from: 'user',
-                text: text,
-                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-            });
-            localStorage.setItem('joellOrders', JSON.stringify(orders));
-            syncOrdersToCloud();
-            input.value = '';
-            renderOrderChatMessages();
-        });
-    }
-
-    // ===== ADMIN CHAT SEND =====
-    const adminChatSend = document.getElementById('adminChatSend');
-    if (adminChatSend) {
-        adminChatSend.addEventListener('click', function() {
-            const input = document.getElementById('adminChatInput');
-            const text = input.value.trim();
-            if (!text || !currentAdminChatId) return;
-            const order = orders.find(o => o.id === currentAdminChatId);
-            if (!order) return;
-            if (!Array.isArray(order.chat)) order.chat = [];
-            order.chat.push({
-                from: 'admin',
-                text: text,
-                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
-            });
-            localStorage.setItem('joellOrders', JSON.stringify(orders));
-            syncOrdersToCloud();
-            input.value = '';
-            renderAdminChatMessages();
-            showToast('Chat', 'Balasan terkirim ke pelanggan', 'success');
-        });
-    }
-
-    // ===== REFRESH ADMIN ORDERS =====
-    const refreshAdmin = document.getElementById('btnRefreshAdmin');
-    if (refreshAdmin) {
-        refreshAdmin.addEventListener('click', function() {
-            refreshAdminOrders();
-        });
-    }
-
-    // ===== CLOSE BUTTONS =====
-    document.querySelectorAll('.modal-close, .detail-close, .cart-close').forEach(function(btn) {
-        btn.addEventListener('click', function(e) {
-            e.preventDefault();
-            e.stopPropagation();
-            var overlay = this.closest('.modal-overlay, .detail-overlay, .cart-overlay');
-            if (overlay) {
-                overlay.classList.remove('open');
-            }
-            var cartPanel = this.closest('.cart-panel');
-            if (cartPanel) {
-                var cartOverlay = document.getElementById('cartOverlay');
-                if (cartOverlay) cartOverlay.classList.remove('open');
-            }
-        });
-    });
-
-    document.querySelectorAll('.modal-overlay, .detail-overlay, .cart-overlay').forEach(function(overlay) {
-        overlay.addEventListener('click', function(e) {
-            if (e.target === this) {
-                this.classList.remove('open');
-            }
-        });
-    });
-
-    document.addEventListener('keydown', function(e) {
-        if (e.key === 'Escape') {
-            document.querySelectorAll('.modal-overlay.open, .detail-overlay.open, .cart-overlay.open').forEach(function(el) {
-                el.classList.remove('open');
-            });
-        }
-    });
-
-    // ===== CLOSE BUTTONS SPECIFIC =====
-    const closeButtons = ['loginCloseBtn', 'profileCloseBtn', 'checkoutCloseBtn', 'detailCloseBtn', 
-                          'topupCloseBtn', 'paymentCloseBtn', 'orderChatCloseBtn', 'adminChatCloseBtn', 'cartCloseBtn'];
-    closeButtons.forEach(function(id) {
-        var btn = document.getElementById(id);
-        if (btn) {
-            btn.addEventListener('click', function() {
-                var overlay = this.closest('.modal-overlay, .detail-overlay, .cart-overlay');
-                if (overlay) overlay.classList.remove('open');
-                if (id === 'paymentCloseBtn' && window.timerInterval) clearInterval(window.timerInterval);
-            });
-        }
-    });
-
-    // ===== PROFILE SAVE =====
-    var profileSaveBtn = document.getElementById('profileSaveBtn');
-    if (profileSaveBtn) {
-        profileSaveBtn.addEventListener('click', function() {
-            const newName = document.getElementById('profileNameInput').value.trim();
-            if (!newName) { showToast('Error', 'Nama tidak boleh kosong', 'error'); return; }
-            currentUser.name = newName;
-            localStorage.setItem('joellUser', JSON.stringify(currentUser));
-            updateUserUI();
-            renderProfilePage();
-            if (currentOrderChatId) renderOrderChatMessages();
-            document.getElementById('profileOverlay').classList.remove('open');
-            showToast('Berhasil', 'Profil Anda telah diperbarui!', 'success');
-        });
-    }
-
-    // ===== HERO VIDEO AUDIO TOGGLE =====
-    const heroVideo = document.getElementById('heroVideo');
-    const soundToggle = document.getElementById('soundToggle');
-    if (heroVideo && soundToggle) {
-        const syncSoundButton = () => {
-            const icon = soundToggle.querySelector('i');
-            const muted = heroVideo.muted || heroVideo.volume === 0;
-            if (icon) icon.className = muted ? 'fas fa-volume-mute' : 'fas fa-volume-up';
-            soundToggle.setAttribute('aria-label', muted ? 'Nyalakan suara video' : 'Matikan suara video');
-            soundToggle.title = muted ? 'Nyalakan suara video' : 'Matikan suara video';
-            soundToggle.classList.toggle('is-unmuted', !muted);
-        };
-        heroVideo.muted = true;
-        heroVideo.volume = 0;
-        syncSoundButton();
-        soundToggle.addEventListener('click', async (event) => {
-            event.preventDefault();
-            const shouldUnmute = heroVideo.muted || heroVideo.volume === 0;
-            heroVideo.muted = !shouldUnmute;
-            heroVideo.volume = shouldUnmute ? 1 : 0;
-            try { await heroVideo.play(); } catch (error) { console.debug('Video play deferred:', error); }
-            syncSoundButton();
-        });
-        heroVideo.addEventListener('volumechange', syncSoundButton);
-    }
-
-    // ===== COUNTDOWN TIMER =====
-    function updateCountdown() {
-        const now = new Date();
-        const diff = CONFIG.flashSaleEnd - now;
-        if (diff <= 0) {
-            document.getElementById('flashSaleBar').style.display = 'none';
-            return;
-        }
-        const h = Math.floor(diff / 3600000);
-        const m = Math.floor((diff % 3600000) / 60000);
-        const s = Math.floor((diff % 60000) / 1000);
-        document.getElementById('cdHours').textContent = String(h).padStart(2, '0');
-        document.getElementById('cdMinutes').textContent = String(m).padStart(2, '0');
-        document.getElementById('cdSeconds').textContent = String(s).padStart(2, '0');
-    }
-    updateCountdown();
-    setInterval(updateCountdown, 1000);
-
-    console.log('✅ All systems ready! No errors!');
-});
-
-// ============================================================
-// INIT CLOUD SYNC
-// ============================================================
-initCloudSync();
-
-console.log('✅ JOELL SHOP Script v2.5.0 Loaded Successfully!');
