@@ -64,21 +64,25 @@
 <div class="modal-overlay" id="orderChatOverlay">
     <div class="modal-box order-chat-modal">
         <div class="order-chat-header">
-            <button onclick="document.getElementById('orderChatOverlay').classList.remove('open')" style="background:none;border:none;color:#8696a0;font-size:1.2rem;margin-right:10px;cursor:pointer;"><i class="fas fa-arrow-left"></i></button>
-            <img src="https://files.catbox.moe/ijemcy.png" alt="admin">
+            <button class="chat-back-btn" aria-label="Kembali ke pesanan" onclick="document.getElementById('orderChatOverlay').classList.remove('open')"><i class="fas fa-arrow-left"></i></button>
+            <div class="chat-profile-mark"><img src="https://files.catbox.moe/ijemcy.png" alt="Admin JOELL SHOP"></div>
             <div class="info">
-                <h3>Admin JOELL SHOP</h3>
+                <div class="chat-title-line"><h3>Admin JOELL SHOP</h3><span class="chat-online-pill"><i class="fas fa-circle"></i> Online</span></div>
                 <p id="orderChatOrderId">Order: #JOELL-0000-0000</p>
             </div>
-            <button class="modal-close" id="orderChatCloseBtn" style="position:static;color:#8696a0;font-size:1.2rem;margin-left:auto;"><i class="fas fa-times"></i></button>
+            <button class="modal-close chat-close-btn" id="orderChatCloseBtn" aria-label="Tutup chat"><i class="fas fa-times"></i></button>
         </div>
-        <div class="order-chat-messages" id="orderChatMessages"></div>
+        <div class="chat-context-bar"><i class="fas fa-shield-alt"></i><span>Pesan Anda tersimpan aman di percakapan pesanan ini.</span></div>
+        <div class="order-chat-messages" id="orderChatMessages" role="log" aria-live="polite" aria-label="Percakapan dengan admin"></div>
         <div class="order-chat-input-wrap">
-            <button class="chat-attach-btn" onclick="document.getElementById('orderChatFile').click()"><i class="fas fa-paperclip"></i></button>
-            <input type="file" id="orderChatFile" accept="image/*" style="display:none;" onchange="handleChatFileUpload(this, 'user')">
-            <div class="input-container">
-                <input type="text" id="orderChatInput" placeholder="Ask me anything...">
-                <button id="orderChatSend"><i class="fas fa-arrow-up"></i></button>
+            <div class="chat-composer-hint"><span>Balas pesan admin</span><small>Enter untuk kirim</small></div>
+            <div class="chat-composer-row">
+                <button class="chat-attach-btn" aria-label="Lampirkan gambar" title="Lampirkan gambar" onclick="document.getElementById('orderChatFile').click()"><i class="fas fa-paperclip"></i></button>
+                <input type="file" id="orderChatFile" accept="image/*" style="display:none;" onchange="handleChatFileUpload(this, 'user')">
+                <div class="input-container">
+                    <input type="text" id="orderChatInput" autocomplete="off" placeholder="Tulis pesan untuk admin..." aria-label="Tulis pesan untuk admin">
+                    <button id="orderChatSend" aria-label="Kirim pesan"><i class="fas fa-arrow-up"></i></button>
+                </div>
             </div>
         </div>
     </div>
