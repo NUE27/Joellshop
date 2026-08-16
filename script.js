@@ -126,6 +126,53 @@ let activePromo = null;
 let currentOrderChatId = null;
 let isAdminLoggedIn = false;
 let currentAdminChatId = null;
+let activeChatListenerRef = null;
+
+function normalizeChatMessages(value) {
+    if (Array.isArray(value)) return value.filter(Boolean);
+    if (value && typeof value === 'object') return Object.values(value).filter(Boolean);
+    return [];
+}
+
+function subscribeToOrderChat(orderId) {
+    if (!db || !orderId) return;
+    if (activeChatListenerRef) {
+        activeChatListenerRef.off();
+        activeChatListenerRef = null;
+    }
+    activeChatListenerRef = db.ref('orderChats').child(String(orderId));
+    activeChatListenerRef.on('value', (snapshot) => {
+        const messages = normalizeChatMessages(snapshot.val());
+        const order = Array.isArray(orders) ? orders.find(item => item.id === orderId) : null;
+        if (order) {
+            order.chat = messages;
+            localStorage.setItem('joellOrders', JSON.stringify(orders));
+        }
+        if (currentOrderChatId === orderId) renderOrderChatMessages();
+        if (currentAdminChatId === orderId) renderAdminChatMessages();
+        updateUnreadBadges();
+    }, (error) => {
+        console.error('Chat listener error:', error);
+        showToast('Chat', 'Chat cloud belum dapat dibaca. Periksa Firebase Rules.', 'error', 5000);
+    });
+}
+
+function sendChatMessageToCloud(orderId, message) {
+    const order = Array.isArray(orders) ? orders.find(item => item.id === orderId) : null;
+    if (!order) return Promise.reject(new Error('Pesanan tidak ditemukan'));
+    if (!db) {
+        if (!Array.isArray(order.chat)) order.chat = [];
+        order.chat.push(message);
+        localStorage.setItem('joellOrders', JSON.stringify(orders));
+        return Promise.resolve();
+    }
+    return db.ref('orderChats').child(String(orderId)).push(message).then(() => {
+        if (!Array.isArray(order.chat)) order.chat = [];
+        order.chat.push(message);
+        localStorage.setItem('joellOrders', JSON.stringify(orders));
+    });
+}
+
 let logoClickCount = 0;
 let firebaseInitialized = false;
 let firebaseAuth = null;
@@ -785,6 +832,7 @@ function openOrderChat(orderId) {
     if (!order) return;
     currentOrderChatId = orderId;
     document.getElementById('orderChatOrderId').textContent = 'Order: #' + orderId;
+    subscribeToOrderChat(orderId);
     renderOrderChatMessages();
     document.getElementById('orderChatOverlay').classList.add('open');
 }
@@ -794,7 +842,7 @@ function renderOrderChatMessages() {
     if (!order) return;
     const container = document.getElementById('orderChatMessages');
     if (!container) return;
-    const messages = Array.isArray(order.chat) ? order.chat : [];
+    const messages = normalizeChatMessages(order.chat);
     container.innerHTML = messages.map(c => {
         const isAdmin = c.from === 'admin';
         const imgHtml = c.image ? `
@@ -965,6 +1013,7 @@ function openAdminChat(orderId) {
         userImg.innerHTML = `<img src="https://ui-avatars.com/api/?name=${encodeURIComponent(order.userName)}&background=random" style="width:100%;height:100%;border-radius:50%;">`;
     }
 
+    subscribeToOrderChat(orderId);
     renderAdminChatMessages();
     document.getElementById('adminChatOverlay').classList.add('open');
 }
@@ -974,7 +1023,7 @@ function renderAdminChatMessages() {
     if (!order) return;
     const container = document.getElementById('adminChatMessages');
     if (!container) return;
-    const messages = Array.isArray(order.chat) ? order.chat : [];
+    const messages = normalizeChatMessages(order.chat);
     container.innerHTML = messages.map(c => {
         const isAdmin = c.from === 'admin';
         const imgHtml = c.image ? `
@@ -1250,16 +1299,15 @@ function handleChatFileUpload(input, senderType) {
                     time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
                 };
 
-                if (!orders[orderIndex].chat) orders[orderIndex].chat = [];
-                orders[orderIndex].chat.push(newMessage);
-
-                localStorage.setItem('joellOrders', JSON.stringify(orders));
-                syncOrdersToCloud();
-
-                if (senderType === 'user') renderOrderChatMessages();
-                else renderAdminChatMessages();
-
-                showToast('Berhasil', 'Gambar berhasil dikirim!', 'success');
+                newMessage.createdAt = Date.now();
+                sendChatMessageToCloud(orderId, newMessage).then(() => {
+                    if (senderType === 'user') renderOrderChatMessages();
+                    else renderAdminChatMessages();
+                    showToast('Berhasil', 'Gambar berhasil dikirim!', 'success');
+                }).catch(error => {
+                    console.error('Chat image send error:', error);
+                    showToast('Error', 'Gambar gagal dikirim ke cloud.', 'error');
+                });
             } else {
                 throw new Error('Gagal mendapatkan link gambar.');
             }
@@ -1307,13 +1355,14 @@ function handleAdminDocUpload(input) {
                     time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
                 };
                 
-                if (!orders[orderIndex].chat) orders[orderIndex].chat = [];
-                orders[orderIndex].chat.push(newMessage);
-                
-                localStorage.setItem('joellOrders', JSON.stringify(orders));
-                syncOrdersToCloud();
-                renderAdminChatMessages();
-                showToast('Berhasil', 'File berhasil dikirim (Base64)!', 'success');
+                newMessage.createdAt = Date.now();
+                sendChatMessageToCloud(orderId, newMessage).then(() => {
+                    renderAdminChatMessages();
+                    showToast('Berhasil', 'File berhasil dikirim (Base64)!', 'success');
+                }).catch(error => {
+                    console.error('Chat file send error:', error);
+                    showToast('Error', 'File gagal dikirim ke cloud.', 'error');
+                });
             };
             reader.readAsDataURL(file);
         } catch (err) {
@@ -1357,13 +1406,14 @@ function handleAdminDocUpload(input) {
                     time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
                 };
                 
-                if (!orders[orderIndex].chat) orders[orderIndex].chat = [];
-                orders[orderIndex].chat.push(newMessage);
-                
-                localStorage.setItem('joellOrders', JSON.stringify(orders));
-                syncOrdersToCloud();
-                renderAdminChatMessages();
-                showToast('Berhasil', 'File berhasil dikirim!', 'success');
+                newMessage.createdAt = Date.now();
+                sendChatMessageToCloud(orderId, newMessage).then(() => {
+                    renderAdminChatMessages();
+                    showToast('Berhasil', 'File berhasil dikirim!', 'success');
+                }).catch(error => {
+                    console.error('Chat file send error:', error);
+                    showToast('Error', 'File gagal dikirim ke cloud.', 'error');
+                });
             } else {
                 throw new Error(result.message || 'Gagal mengunggah file.');
             }
@@ -1796,16 +1846,19 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!text || !currentOrderChatId) return;
             const order = orders.find(o => o.id === currentOrderChatId);
             if (!order) return;
-            if (!Array.isArray(order.chat)) order.chat = [];
-            order.chat.push({
+            const message = {
                 from: 'user',
                 text: text,
-                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
+                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
+                createdAt: Date.now()
+            };
+            sendChatMessageToCloud(currentOrderChatId, message).then(() => {
+                input.value = '';
+                renderOrderChatMessages();
+            }).catch(error => {
+                console.error('User chat send error:', error);
+                showToast('Chat', 'Pesan gagal dikirim. Periksa koneksi cloud.', 'error');
             });
-            localStorage.setItem('joellOrders', JSON.stringify(orders));
-            syncOrdersToCloud();
-            input.value = '';
-            renderOrderChatMessages();
         });
     }
 
@@ -1818,17 +1871,20 @@ document.addEventListener('DOMContentLoaded', function() {
             if (!text || !currentAdminChatId) return;
             const order = orders.find(o => o.id === currentAdminChatId);
             if (!order) return;
-            if (!Array.isArray(order.chat)) order.chat = [];
-            order.chat.push({
+            const message = {
                 from: 'admin',
                 text: text,
-                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'})
+                time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
+                createdAt: Date.now()
+            };
+            sendChatMessageToCloud(currentAdminChatId, message).then(() => {
+                input.value = '';
+                renderAdminChatMessages();
+                showToast('Chat', 'Balasan terkirim ke pelanggan', 'success');
+            }).catch(error => {
+                console.error('Admin chat send error:', error);
+                showToast('Chat', 'Balasan gagal dikirim. Periksa koneksi cloud.', 'error');
             });
-            localStorage.setItem('joellOrders', JSON.stringify(orders));
-            syncOrdersToCloud();
-            input.value = '';
-            renderAdminChatMessages();
-            showToast('Chat', 'Balasan terkirim ke pelanggan', 'success');
         });
     }
 
