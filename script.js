@@ -123,6 +123,23 @@ let currentUser = JSON.parse(localStorage.getItem('joellUser')) || null;
 let currentProductId = null;
 let selectedVariant = null;
 let activePromo = null;
+function setChatSending(orderId, sending, label = 'Enter untuk kirim') {
+    const ids = ['orderChatInput', 'adminChatInput'];
+    ids.forEach(function(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        const sendId = inputId === 'orderChatInput' ? 'orderChatSend' : 'adminChatSend';
+        const button = document.getElementById(sendId);
+        const activeId = inputId === 'orderChatInput' ? currentOrderChatId : currentAdminChatId;
+        if (String(activeId) !== String(orderId)) return;
+        const composer = input.closest('.input-container');
+        const hint = input.closest('.order-chat-input-wrap')?.querySelector('.chat-composer-hint small');
+        if (composer) composer.classList.toggle('is-sending', sending);
+        input.disabled = sending;
+        if (button) { button.disabled = sending; button.setAttribute('aria-busy', String(sending)); button.innerHTML = sending ? '<i class="fas fa-spinner fa-spin"></i>' : '<i class="fas fa-arrow-up"></i>'; }
+        if (hint) hint.textContent = label;
+    });
+}
 let currentOrderChatId = null;
 let isAdminLoggedIn = false;
 let currentAdminChatId = null;
@@ -152,15 +169,49 @@ function dedupeChatMessages(messages) {
     });
 }
 
+function showChatInlineError(orderId, message) {
+    ['orderChatMessages', 'adminChatMessages'].forEach(function(id) {
+        const container = document.getElementById(id);
+        if (!container) return;
+        const active = id === 'orderChatMessages' ? currentOrderChatId : currentAdminChatId;
+        if (String(active) !== String(orderId)) return;
+        let error = container.querySelector('.chat-inline-error');
+        if (!error) { error = document.createElement('div'); error.className = 'chat-inline-error'; container.prepend(error); }
+        error.innerHTML = '<i class="fas fa-exclamation-triangle"></i><span>' + escapeChatText(message) + '</span>';
+    });
+}
+function setChatLoading(orderId, loading, label = 'Memuat percakapan...') {
+    const ids = ['orderChatMessages', 'adminChatMessages'];
+    ids.forEach(function(id) {
+        const container = document.getElementById(id);
+        if (!container) return;
+        const active = id === 'orderChatMessages' ? currentOrderChatId : currentAdminChatId;
+        if (String(active) !== String(orderId)) return;
+        let state = container.querySelector('.chat-loading-state');
+        if (loading) {
+            if (!state) {
+                state = document.createElement('div');
+                state.className = 'chat-loading-state';
+                container.prepend(state);
+            }
+            state.innerHTML = '<span class="chat-loading-spinner" aria-hidden="true"></span><span>' + label + '</span>';
+            state.style.display = 'flex';
+        } else if (state) {
+            state.remove();
+        }
+    });
+}
 function subscribeToOrderChat(orderId) {
     if (!db || !orderId) return;
     if (activeChatListenerRef) {
         activeChatListenerRef.off();
         activeChatListenerRef = null;
     }
+    setChatLoading(orderId, true);
     activeChatListenerRef = db.ref('orderChats').child(String(orderId));
     activeChatListenerRef.on('value', (snapshot) => {
         const messages = dedupeChatMessages(snapshot.val());
+        setChatLoading(orderId, false);
         const order = Array.isArray(orders) ? orders.find(item => item.id === orderId) : null;
         if (order) {
             order.chat = messages;
@@ -170,7 +221,9 @@ function subscribeToOrderChat(orderId) {
         if (currentAdminChatId === orderId) renderAdminChatMessages();
         updateUnreadBadges();
     }, (error) => {
+        setChatLoading(orderId, false);
         console.error('Chat listener error:', error);
+        showChatInlineError(orderId, 'Chat belum dapat dimuat. Periksa koneksi atau Firebase Rules.');
         showToast('Chat', 'Chat cloud belum dapat dibaca. Periksa Firebase Rules.', 'error', 5000);
     });
 }
@@ -854,6 +907,11 @@ function openOrderChat(orderId) {
     document.getElementById('orderChatOverlay').classList.add('open');
 }
 
+function escapeChatText(value) {
+    return String(value ?? '').replace(/[&<>"']/g, function(char) {
+        return ({'&':'&amp;','<':'&lt;','>':'&gt;','"':'&quot;',"'":'&#39;'})[char];
+    });
+}
 function renderOrderChatMessages() {
     const order = orders.find(o => o.id === currentOrderChatId);
     if (!order) return;
@@ -864,7 +922,13 @@ function renderOrderChatMessages() {
         const isAdmin = c.from === 'admin';
         const imgHtml = c.image ? `
             <div class="chat-img-container">
-                <img src="${c.image}" alt="chat-img" onclick="window.open('${c.image}', '_blank')">
+                <img src="${c.image}" alt="Gambar lampiran chat" onclick="window.open('${c.image}', '_blank', 'noopener,noreferrer')">
+                <a class="chat-download-overlay" href="${c.image}" target="_blank" rel="noopener noreferrer" aria-label="Buka gambar lampiran"><i class="fas fa-expand-alt"></i></a>
+            </div>` : '';
+        const fileHtml = c.file ? `
+            <div class="chat-file-box">
+                <span class="file-icon"><i class="fas fa-file-alt"></i></span>
+                <div class="file-info"><div class="file-name">${escapeChatText(c.fileName || 'Lampiran file')}</div><a class="file-download-link" href="${c.file}" target="_blank" rel="noopener noreferrer"><i class="fas fa-download"></i> Buka file</a></div>
             </div>` : '';
         
         const avatar = isAdmin ? 
@@ -875,9 +939,10 @@ function renderOrderChatMessages() {
             <div class="chat-row ${isAdmin ? 'admin-row' : 'user-row'}">
                 ${avatar}
                 <div class="msg ${isAdmin ? 'admin' : 'user'}">
-                    ${c.text || ''}
+                    ${escapeChatText(c.text || '')}
                     ${imgHtml}
-                    <span class="time">${c.time}</span>
+                    ${fileHtml}
+                    <span class="time">${escapeChatText(c.time || '')}</span>
                 </div>
             </div>
         `;
@@ -1045,7 +1110,13 @@ function renderAdminChatMessages() {
         const isAdmin = c.from === 'admin';
         const imgHtml = c.image ? `
             <div class="chat-img-container">
-                <img src="${c.image}" alt="chat-img" onclick="window.open('${c.image}', '_blank')">
+                <img src="${c.image}" alt="Gambar lampiran chat" onclick="window.open('${c.image}', '_blank', 'noopener,noreferrer')">
+                <a class="chat-download-overlay" href="${c.image}" target="_blank" rel="noopener noreferrer" aria-label="Buka gambar lampiran"><i class="fas fa-expand-alt"></i></a>
+            </div>` : '';
+        const fileHtml = c.file ? `
+            <div class="chat-file-box">
+                <span class="file-icon"><i class="fas fa-file-alt"></i></span>
+                <div class="file-info"><div class="file-name">${escapeChatText(c.fileName || 'Lampiran file')}</div><a class="file-download-link" href="${c.file}" target="_blank" rel="noopener noreferrer"><i class="fas fa-download"></i> Buka file</a></div>
             </div>` : '';
 
         const avatar = isAdmin ? 
@@ -1056,9 +1127,10 @@ function renderAdminChatMessages() {
             <div class="chat-row ${isAdmin ? 'user-row' : 'admin-row'}">
                 ${avatar}
                 <div class="msg ${isAdmin ? 'user' : 'admin'}">
-                    ${c.text || ''}
+                    ${escapeChatText(c.text || '')}
                     ${imgHtml}
-                    <span class="time">${c.time}</span>
+                    ${fileHtml}
+                    <span class="time">${escapeChatText(c.time || '')}</span>
                 </div>
             </div>
         `;
@@ -1292,6 +1364,7 @@ function handleChatFileUpload(input, senderType) {
         return;
     }
 
+    setChatSending(orderId, true, 'Mengirim gambar...');
     showToast('Chat', 'Sedang mengirim gambar...', 'info');
 
     const formData = new FormData();
@@ -1331,8 +1404,9 @@ function handleChatFileUpload(input, senderType) {
         })
         .catch(error => {
             console.error("Image Upload Error:", error);
+            showChatInlineError(orderId, 'Gambar gagal dikirim. Silakan coba lagi.');
             showToast('Error', 'Gagal kirim gambar: ' + error.message, 'error', 5000);
-        });
+        }).finally(() => setChatSending(orderId, false));
     } catch (error) {
         showToast('Error', 'Gagal kirim gambar: ' + error.message, 'error', 5000);
     } finally {
@@ -1359,6 +1433,7 @@ function handleAdminDocUpload(input) {
     }
 
     if (file.size <= 500 * 1024) {
+        setChatSending(orderId, true, 'Menyiapkan file...');
         showToast('Admin', 'Mengkonversi file ke base64...', 'info');
         try {
             const reader = new FileReader();
@@ -1379,7 +1454,11 @@ function handleAdminDocUpload(input) {
                 }).catch(error => {
                     console.error('Chat file send error:', error);
                     showToast('Error', 'File gagal dikirim ke cloud.', 'error');
-                });
+                }).finally(() => setChatSending(orderId, false));
+            };
+            reader.onerror = function() {
+                setChatSending(orderId, false);
+                showToast('Error', 'Gagal membaca file.', 'error');
             };
             reader.readAsDataURL(file);
         } catch (err) {
@@ -1396,6 +1475,7 @@ function handleAdminDocUpload(input) {
         return;
     }
 
+    setChatSending(orderId, true, 'Mengunggah file...');
     showToast('Admin', 'Sedang mengupload file...', 'info');
     
     const formData = new FormData();
@@ -1437,9 +1517,11 @@ function handleAdminDocUpload(input) {
         })
         .catch(error => {
             console.error("File Upload Error:", error);
+            showChatInlineError(orderId, 'File gagal diunggah. Silakan coba lagi.');
             showToast('Error', 'Gagal upload: ' + error.message, 'error', 5000);
-        });
+        }).finally(() => setChatSending(orderId, false));
     } catch (error) {
+        setChatSending(orderId, false);
         showToast('Error', 'Gagal upload: ' + error.message, 'error', 5000);
     } finally {
         input.value = '';
@@ -1869,13 +1951,15 @@ document.addEventListener('DOMContentLoaded', function() {
                 time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
                 createdAt: Date.now()
             };
+            setChatSending(currentOrderChatId, true, 'Mengirim pesan...');
             sendChatMessageToCloud(currentOrderChatId, message).then(() => {
                 input.value = '';
                 renderOrderChatMessages();
             }).catch(error => {
                 console.error('User chat send error:', error);
+                showChatInlineError(currentOrderChatId, 'Pesan gagal dikirim. Coba lagi.');
                 showToast('Chat', 'Pesan gagal dikirim. Periksa koneksi cloud.', 'error');
-            });
+            }).finally(() => setChatSending(currentOrderChatId, false));
         });
     }
 
@@ -1894,16 +1978,32 @@ document.addEventListener('DOMContentLoaded', function() {
                 time: new Date().toLocaleTimeString('id-ID', {hour:'2-digit', minute:'2-digit'}),
                 createdAt: Date.now()
             };
+            setChatSending(currentAdminChatId, true, 'Mengirim balasan...');
             sendChatMessageToCloud(currentAdminChatId, message).then(() => {
                 input.value = '';
                 renderAdminChatMessages();
                 showToast('Chat', 'Balasan terkirim ke pelanggan', 'success');
             }).catch(error => {
                 console.error('Admin chat send error:', error);
+                showChatInlineError(currentAdminChatId, 'Balasan gagal dikirim. Coba lagi.');
                 showToast('Chat', 'Balasan gagal dikirim. Periksa koneksi cloud.', 'error');
-            });
+            }).finally(() => setChatSending(currentAdminChatId, false));
         });
     }
+
+    // ===== CHAT KEYBOARD UX =====
+    ['orderChatInput', 'adminChatInput'].forEach(function(inputId) {
+        const input = document.getElementById(inputId);
+        if (!input) return;
+        input.addEventListener('keydown', function(e) {
+            if (e.key === 'Enter' && !e.shiftKey) {
+                e.preventDefault();
+                const sendId = inputId === 'orderChatInput' ? 'orderChatSend' : 'adminChatSend';
+                const sendButton = document.getElementById(sendId);
+                if (sendButton && !sendButton.disabled) sendButton.click();
+            }
+        });
+    });
 
     // ===== REFRESH ADMIN ORDERS =====
     const refreshAdmin = document.getElementById('btnRefreshAdmin');
