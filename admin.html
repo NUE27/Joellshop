@@ -107,23 +107,27 @@
 <div class="modal-overlay" id="adminChatOverlay">
     <div class="modal-box order-chat-modal">
         <div class="order-chat-header">
-            <button onclick="document.getElementById('adminChatOverlay').classList.remove('open')" style="background:none;border:none;color:#8696a0;font-size:1.2rem;margin-right:10px;cursor:pointer;"><i class="fas fa-arrow-left"></i></button>
-            <div class="testimonial-avatar" id="adminChatUserImg" style="width:44px;height:44px;font-size:1.2rem;background:linear-gradient(135deg,var(--green),var(--accent)); border-radius: 50%; display: flex; align-items: center; justify-content: center;"><i class="fas fa-user"></i></div>
+            <button class="chat-back-btn" aria-label="Kembali ke daftar pesanan" onclick="document.getElementById('adminChatOverlay').classList.remove('open')"><i class="fas fa-arrow-left"></i></button>
+            <div class="chat-profile-mark admin-profile" id="adminChatUserImg"><i class="fas fa-user"></i></div>
             <div class="info">
-                <h3 id="adminChatUserName">Chat Pelanggan</h3>
+                <div class="chat-title-line"><h3 id="adminChatUserName">Chat Pelanggan</h3><span class="chat-role-pill">Customer</span></div>
                 <p id="adminChatOrderId">Order: #JOELL-0000-0000</p>
             </div>
-            <button class="modal-close" id="adminChatCloseBtn" style="position:static;color:#8696a0;font-size:1.2rem;margin-left:auto;"><i class="fas fa-times"></i></button>
+            <button class="modal-close chat-close-btn" id="adminChatCloseBtn" aria-label="Tutup chat"><i class="fas fa-times"></i></button>
         </div>
-        <div class="order-chat-messages" id="adminChatMessages"></div>
+        <div class="chat-context-bar admin-context"><i class="fas fa-headset"></i><span>Mode admin · Balas dengan informasi yang ringkas dan membantu.</span></div>
+        <div class="order-chat-messages" id="adminChatMessages" role="log" aria-live="polite" aria-label="Percakapan dengan pelanggan"></div>
         <div class="order-chat-input-wrap">
-            <button class="chat-attach-btn" onclick="document.getElementById('adminChatFile').click()" title="Upload Gambar"><i class="fas fa-image"></i></button>
-            <button class="chat-attach-btn" onclick="document.getElementById('adminDocFile').click()" title="Upload File/Script"><i class="fas fa-file-code"></i></button>
-            <input type="file" id="adminChatFile" accept="image/*" style="display:none;" onchange="handleChatFileUpload(this, 'admin')">
-            <input type="file" id="adminDocFile" accept=".json,.zip,.txt,.js,.html" style="display:none;" onchange="handleAdminDocUpload(this)">
-            <div class="input-container">
-                <input type="text" id="adminChatInput" placeholder="Reply to customer...">
-                <button id="adminChatSend"><i class="fas fa-arrow-up"></i></button>
+            <div class="chat-composer-hint"><span>Balas pelanggan</span><small>Enter untuk kirim</small></div>
+            <div class="chat-composer-row">
+                <button class="chat-attach-btn" aria-label="Lampirkan gambar" onclick="document.getElementById('adminChatFile').click()" title="Lampirkan gambar"><i class="fas fa-image"></i></button>
+                <button class="chat-attach-btn" aria-label="Lampirkan file" onclick="document.getElementById('adminDocFile').click()" title="Lampirkan file"><i class="fas fa-paperclip"></i></button>
+                <input type="file" id="adminChatFile" accept="image/*" style="display:none;" onchange="handleChatFileUpload(this, 'admin')">
+                <input type="file" id="adminDocFile" accept=".json,.zip,.txt,.js,.html,.pdf" style="display:none;" onchange="handleAdminDocUpload(this)">
+                <div class="input-container">
+                    <input type="text" id="adminChatInput" autocomplete="off" placeholder="Tulis balasan untuk pelanggan..." aria-label="Tulis balasan untuk pelanggan">
+                    <button id="adminChatSend" aria-label="Kirim balasan"><i class="fas fa-arrow-up"></i></button>
+                </div>
             </div>
         </div>
     </div>
