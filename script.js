@@ -130,8 +130,26 @@ let activeChatListenerRef = null;
 
 function normalizeChatMessages(value) {
     if (Array.isArray(value)) return value.filter(Boolean);
-    if (value && typeof value === 'object') return Object.values(value).filter(Boolean);
+    if (value && typeof value === 'object') {
+        return Object.entries(value).map(([key, message]) => {
+            if (!message || typeof message !== 'object') return null;
+            return { ...message, _id: message.id || message._id || key };
+        }).filter(Boolean);
+    }
     return [];
+}
+
+function dedupeChatMessages(messages) {
+    const seen = new Set();
+    return normalizeChatMessages(messages).filter(message => {
+        const identity = message.id || [
+            message.from || '', message.createdAt || message.time || '',
+            message.text || '', message.image || '', message.file || ''
+        ].join('|');
+        if (seen.has(identity)) return false;
+        seen.add(identity);
+        return true;
+    });
 }
 
 function subscribeToOrderChat(orderId) {
@@ -142,7 +160,7 @@ function subscribeToOrderChat(orderId) {
     }
     activeChatListenerRef = db.ref('orderChats').child(String(orderId));
     activeChatListenerRef.on('value', (snapshot) => {
-        const messages = normalizeChatMessages(snapshot.val());
+        const messages = dedupeChatMessages(snapshot.val());
         const order = Array.isArray(orders) ? orders.find(item => item.id === orderId) : null;
         if (order) {
             order.chat = messages;
@@ -168,7 +186,6 @@ function sendChatMessageToCloud(orderId, message) {
     }
     return db.ref('orderChats').child(String(orderId)).push(message).then(() => {
         if (!Array.isArray(order.chat)) order.chat = [];
-        order.chat.push(message);
         localStorage.setItem('joellOrders', JSON.stringify(orders));
     });
 }
@@ -842,7 +859,7 @@ function renderOrderChatMessages() {
     if (!order) return;
     const container = document.getElementById('orderChatMessages');
     if (!container) return;
-    const messages = normalizeChatMessages(order.chat);
+    const messages = dedupeChatMessages(order.chat);
     container.innerHTML = messages.map(c => {
         const isAdmin = c.from === 'admin';
         const imgHtml = c.image ? `
@@ -1023,7 +1040,7 @@ function renderAdminChatMessages() {
     if (!order) return;
     const container = document.getElementById('adminChatMessages');
     if (!container) return;
-    const messages = normalizeChatMessages(order.chat);
+    const messages = dedupeChatMessages(order.chat);
     container.innerHTML = messages.map(c => {
         const isAdmin = c.from === 'admin';
         const imgHtml = c.image ? `
